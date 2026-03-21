@@ -10,7 +10,7 @@ axios.interceptors.response.use(
     response => response,
     error => {
         if(error?.response?.status === 401){
-            window.location.replace(`${process.env.NEXT_PUBLIC_VCOSMOS_USER_MANAGEMENT_URL}/auth/login`);
+            window.location.replace("/auth/login");
         }
         return Promise.reject(error);
     }
