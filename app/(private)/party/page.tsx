@@ -2,44 +2,47 @@ import axios from "@config/axios";
 import { getToken } from "@lib/getToken";
 import { getRefreshToken } from "@lib/getRefreshToken";
 import { AxiosError } from "axios";
-import { RfqTable, AddRfqDialog } from "./components";
-import { rfqColumns } from "./components/rfq-columns";
+import { PartyTable, AddPartyDialog, ImportExcelDialog } from "./components";
+import { partyColumns } from "./components/party-columns";
 
-const RFQPage = async () => {
-	const { data, totalPages, totalCount } = await fetchRfqs();
+const PartyPage = async () => {
+	const { data, totalPages, totalCount } = await fetchParties();
 
 	return (
 		<section className="flex h-full min-h-[calc(100vh-4rem)] w-full flex-col items-center gap-2 overflow-auto p-5">
 			<div className="flex w-full items-center justify-between">
 				<div>
-					<h1 className="text-2xl font-bold">RFQ Management</h1>
-					<p className="text-sm text-muted-foreground">Manage your Request for Quotations</p>
+					<h1 className="text-2xl font-bold">Party Master</h1>
+					<p className="text-sm text-muted-foreground">Manage your party records and contacts</p>
 				</div>
-				<AddRfqDialog />
+				<div className="flex gap-2">
+					<ImportExcelDialog />
+					<AddPartyDialog />
+				</div>
 			</div>
-			<RfqTable columns={rfqColumns} initialData={data} totalElements={totalCount} totalPages={totalPages} />
+			<PartyTable columns={partyColumns} initialData={data} totalElements={totalCount} totalPages={totalPages} />
 		</section>
 	);
 };
 
-export default RFQPage;
+export default PartyPage;
 
-const fetchRfqs = async () => {
+const fetchParties = async () => {
 	const token = await getToken();
 	const refreshToken = await getRefreshToken();
 	try {
-		const response = await axios.get("/api/v1/rfq/all?page=1&size=10&sortBy=createdAt&sortOrder=desc", {
+		const response = await axios.get("/api/v1/party/all?page=1&size=10&sortBy=createdAt&sortOrder=desc", {
 			headers: { cookie: `accessToken=${token}; refreshToken=${refreshToken}` },
 		});
 		const result = response?.data?.data;
 		return {
-			data: (result?.data ?? []) as Rfq[],
+			data: (result?.data ?? []) as Party[],
 			totalPages: (result?.totalPages ?? 0) as number,
 			totalCount: (result?.totalCount ?? 0) as number,
 		};
 	} catch (error: unknown) {
 		const errorData = (error as AxiosError)?.response?.data as ErrorData;
 		console.error(errorData?.message);
-		return { data: [] as Rfq[], totalPages: 0, totalCount: 0 };
+		return { data: [] as Party[], totalPages: 0, totalCount: 0 };
 	}
 };

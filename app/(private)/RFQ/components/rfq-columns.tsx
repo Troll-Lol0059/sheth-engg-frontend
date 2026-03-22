@@ -1,9 +1,8 @@
 "use client";
 import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@components/ui/badge";
-import { Button } from "@components/ui/button";
-import { Eye } from "lucide-react";
 import { format } from "date-fns";
+import Options from "./options";
 
 const statusVariantMap: Record<string, "default" | "secondary" | "success" | "warning" | "destructive"> = {
 	PREVIEW: "secondary",
@@ -13,7 +12,7 @@ const statusVariantMap: Record<string, "default" | "secondary" | "success" | "wa
 	COMPLETED: "success",
 };
 
-export const createRfqColumns = (onViewDetails: (rfq: Rfq) => void): ColumnDef<Rfq>[] => [
+export const rfqColumns: ColumnDef<Rfq>[] = [
 	{
 		accessorKey: "prNumber",
 		header: "PR Number",
@@ -57,11 +56,6 @@ export const createRfqColumns = (onViewDetails: (rfq: Rfq) => void): ColumnDef<R
 	{
 		id: "actions",
 		header: "Actions",
-		cell: ({ row }) => (
-			<Button onClick={() => onViewDetails(row.original)} size="sm" variant="ghost">
-				<Eye className="mr-1 h-4 w-4" />
-				Details
-			</Button>
-		),
+		cell: ({ row }) => <Options rfq={row.original} />,
 	},
 ];

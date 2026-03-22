@@ -24,14 +24,14 @@ import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMe
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@components/ui/table";
 import { TablePaginationControls } from "@components/common/table-pagination-controls";
 
-type RfqTableProps = {
-	initialData: Rfq[];
+type PartyTableProps = {
+	initialData: Party[];
 	totalPages: number;
-	columns: ColumnDef<Rfq>[];
+	columns: ColumnDef<Party>[];
 	totalElements: number;
 };
 
-const RfqTable = ({ initialData, columns, totalPages, totalElements }: RfqTableProps) => {
+const PartyTable = ({ initialData, columns, totalPages, totalElements }: PartyTableProps) => {
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [filter, setFilter] = useState<string>("");
 	const [globalFilter, setGlobalFilter] = useState<string>(filter);
@@ -44,7 +44,7 @@ const RfqTable = ({ initialData, columns, totalPages, totalElements }: RfqTableP
 
 	useDebounce(() => setGlobalFilter(filter), 500, [filter]);
 
-	const fetchRfqs = async ({ queryKey }: { queryKey: QueryKey }) => {
+	const fetchParties = async ({ queryKey }: { queryKey: QueryKey }) => {
 		const [, search, page, size, sort, sortOrder] = queryKey as [string, string | undefined, number, number, string | undefined, string | undefined];
 		try {
 			const params = new URLSearchParams();
@@ -54,11 +54,11 @@ const RfqTable = ({ initialData, columns, totalPages, totalElements }: RfqTableP
 			if (sort) params.append("sortBy", sort);
 			if (sortOrder) params.append("sortOrder", sortOrder);
 
-			const response = await axios.get(`/api/v1/rfq/all?${params.toString()}`);
+			const response = await axios.get(`/api/v1/party/all?${params.toString()}`);
 			const result = response?.data?.data;
 			setPageCount(result?.totalPages ?? 0);
 			setTotalElementsCount(result?.totalCount ?? 0);
-			return (result?.data ?? []) as Rfq[];
+			return (result?.data ?? []) as Party[];
 		} catch (error: unknown) {
 			const errorData = (error as AxiosError)?.response?.data as ErrorData;
 			console.error(errorData?.message);
@@ -66,16 +66,16 @@ const RfqTable = ({ initialData, columns, totalPages, totalElements }: RfqTableP
 		}
 	};
 
-	const { data, isFetching } = useQuery<Rfq[]>({
+	const { data, isFetching } = useQuery<Party[]>({
 		queryKey: [
-			"rfqs-all",
+			"parties-all",
 			globalFilter,
 			pagination.pageIndex,
 			pagination.pageSize,
 			sorting[0]?.id,
 			sorting[0]?.desc ? "desc" : "asc",
 		],
-		queryFn: fetchRfqs,
+		queryFn: fetchParties,
 		initialData: initialData,
 	});
 
@@ -125,7 +125,7 @@ const RfqTable = ({ initialData, columns, totalPages, totalElements }: RfqTableP
 	return (
 		<>
 			<div className="flex w-full flex-col items-center justify-end gap-1 py-3 sm:flex-row">
-				<Input className="h-10 max-w-sm" onChange={e => setFilter(e.target.value)} placeholder="Search RFQs..." startContent={<Search size={16} />} value={filter} />
+				<Input className="h-10 max-w-sm" onChange={e => setFilter(e.target.value)} placeholder="Search parties..." startContent={<Search size={16} />} value={filter} />
 				<div className="mt-2 flex w-full flex-col items-center gap-2 sm:mt-0 sm:w-auto sm:flex-row">
 					<Button className="w-full text-xs lg:w-auto" onClick={resetTableState} variant="outline">
 						<ListRestart size={16} />
@@ -191,9 +191,9 @@ const RfqTable = ({ initialData, columns, totalPages, totalElements }: RfqTableP
 				</Table>
 			</div>
 
-			<TablePaginationControls footerHeading="RFQs" table={table} totalElementsCount={totalElementsCount} />
+			<TablePaginationControls footerHeading="Parties" table={table} totalElementsCount={totalElementsCount} />
 		</>
 	);
 };
 
-export default RfqTable;
+export default PartyTable;

@@ -10,7 +10,7 @@ import { Plus, RotateCcw } from "lucide-react";
 import ExtractionPreview from "./extraction-preview";
 
 interface AddRfqDialogProps {
-	onConfirmed: () => void;
+	onConfirmed?: () => void;
 }
 
 const AddRfqDialog = ({ onConfirmed }: AddRfqDialogProps) => {
@@ -101,7 +101,7 @@ const AddRfqDialog = ({ onConfirmed }: AddRfqDialogProps) => {
 
 			setOpen(false);
 			resetState();
-			onConfirmed();
+			onConfirmed?.();
 		} catch (error: unknown) {
 			const errorData = (error as AxiosError)?.response?.data as ErrorData;
 			toast.error(errorData?.error ?? "Save Failed", {
