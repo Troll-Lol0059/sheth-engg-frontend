@@ -64,6 +64,7 @@ export const LineItemSchema = z.object({
 		length: z.string().optional().default(""),
 		weight: z.string().optional().default(""),
 		grade: z.string().optional().default(""),
+		remarks: z.string().optional().default(""),
 		hardness: z.array(HardnessEntrySchema).default([]),
 	}),
 });
@@ -83,6 +84,7 @@ const BomEntrySchema = z.object({
 	diameter: z.string().optional().default(""),
 	length: z.string().optional().default(""),
 	weight: z.string().optional().default(""),
+	density: z.string().optional().default("7.85"),
 	grade: z.string().optional().default(""),
 	make: z.string().optional().default(""),
 	remarks: z.string().optional().default(""),

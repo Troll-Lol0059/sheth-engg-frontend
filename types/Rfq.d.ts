@@ -12,6 +12,7 @@ type RfqItemTechSpecs = {
 	length: string;
 	weight: string;
 	grade: string;
+	remarks?: string;
 	hardness?: Hardness[];
 };
 
@@ -44,6 +45,7 @@ type BomEntry = {
 	diameter?: string;
 	length?: string;
 	weight?: string;
+	density?: string;
 	grade?: string;
 	make?: string;
 	remarks?: string;
@@ -90,8 +92,81 @@ type Rfq = {
 	status: "PENDING_SELECTION" | "AWARDED" | "COMPLETED" | "PREVIEW" | "ACCEPTING_RESPONSE";
 	deliveryWeeks?: number;
 	items: RfqLineItem[] | string[];
+	activeTechnicalOffer?: string;
 	quotedItemCount?: number;
 	isDeleted: boolean;
+	createdAt: string;
+	updatedAt: string;
+};
+
+// ── Technical Offer (versioned) ──
+
+type TechOfferChangeRequest = {
+	_id: string;
+	itemCode: string;
+	field: string;
+	currentValue: string;
+	requestedValue: string;
+	notes: string;
+	resolved: boolean;
+};
+
+type TechOfferSnapshotHardness = {
+	hardnessType: string;
+	value: string;
+	measurement: string;
+};
+
+type TechOfferSnapshotBom = {
+	partName: string;
+	material: string;
+	grade: string;
+	quantity: number;
+	hardness: TechOfferSnapshotHardness[];
+	remarks: string;
+};
+
+type TechOfferSnapshotItem = {
+	serialNumber: string;
+	itemCode: string;
+	itemName: string;
+	itemDesc: string;
+	itemType: string;
+	quantity: number;
+	drawingNumber: string;
+	material: string;
+	grade: string;
+	hardness: TechOfferSnapshotHardness[];
+	remarks: string;
+	bom: TechOfferSnapshotBom[];
+};
+
+type TechOfferSnapshot = {
+	prNumber: string;
+	companyName: string;
+	location: string;
+	ownerName: string;
+	deliveryWeeks: number;
+	items: TechOfferSnapshotItem[];
+};
+
+type TechOfferStatus = "DRAFT" | "SUBMITTED" | "UNDER_REVIEW" | "REVISION_REQUESTED" | "APPROVED" | "SUPERSEDED";
+
+type TechnicalOffer = {
+	_id: string;
+	rfq: string;
+	version: number;
+	status: TechOfferStatus;
+	snapshot: TechOfferSnapshot;
+	pdfUrl: string;
+	excelUrl: string;
+	changeRequests: TechOfferChangeRequest[];
+	reviewRemarks: string;
+	generatedBy?: { _id: string; name: string; email: string };
+	submittedAt?: string;
+	reviewedAt?: string;
+	approvedBy?: string;
+	approvedAt?: string;
 	createdAt: string;
 	updatedAt: string;
 };

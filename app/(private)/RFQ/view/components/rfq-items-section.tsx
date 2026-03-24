@@ -192,6 +192,7 @@ const ItemCard = ({ lineItem, idx, expanded, onToggle, rfqId }: ItemCardProps) =
 				diameter: b.diameter ?? "",
 				length: b.length ?? "",
 				weight: b.weight ?? "",
+				density: b.density ?? "7.85",
 				grade: b.grade ?? "",
 				make: b.make ?? "",
 				remarks: b.remarks ?? "",
@@ -199,6 +200,17 @@ const ItemCard = ({ lineItem, idx, expanded, onToggle, rfqId }: ItemCardProps) =
 			})),
 		},
 	});
+
+	// Weight calculator for BOM parts
+	const calcBomWeight = (bomIdx: number) => {
+		const dia = parseFloat(bomForm.getValues(`bom.${bomIdx}.diameter`) || "0") || 0;
+		const len = parseFloat(bomForm.getValues(`bom.${bomIdx}.length`) || "0") || 0;
+		const den = parseFloat(bomForm.getValues(`bom.${bomIdx}.density`) || "7.85") || 7.85;
+		if (dia > 0 && len > 0) {
+			const w = (Math.PI * Math.pow(dia / 2, 2) * len * den) / 1_000_000;
+			bomForm.setValue(`bom.${bomIdx}.weight`, w.toFixed(4));
+		}
+	};
 
 	const { fields: bomFields, append: appendBom, remove: removeBom } = useFieldArray({
 		control: bomForm.control,
@@ -291,6 +303,7 @@ const ItemCard = ({ lineItem, idx, expanded, onToggle, rfqId }: ItemCardProps) =
 				diameter: b.diameter ?? "",
 				length: b.length ?? "",
 				weight: b.weight ?? "",
+				density: b.density ?? "7.85",
 				grade: b.grade ?? "",
 				make: b.make ?? "",
 				remarks: b.remarks ?? "",
@@ -612,7 +625,7 @@ const ItemCard = ({ lineItem, idx, expanded, onToggle, rfqId }: ItemCardProps) =
 									<div className="mb-3 flex items-center justify-between">
 										<h5 className="text-sm font-semibold">Bill of Materials (BOM)</h5>
 										<div className="flex gap-2">
-											<Button onClick={() => appendBom({ partName: "", partDescription: "", material: "", quantity: 1, diameter: "", length: "", weight: "", grade: "", make: "", remarks: "", hardness: [] })} size="sm" type="button" variant="outline">
+											<Button onClick={() => appendBom({ partName: "", partDescription: "", material: "", quantity: 1, diameter: "", length: "", weight: "", density: "7.85", grade: "", make: "", remarks: "", hardness: [] })} size="sm" type="button" variant="outline">
 												<Plus className="mr-2 h-3 w-3" />
 												Add Part
 											</Button>
@@ -692,15 +705,15 @@ const ItemCard = ({ lineItem, idx, expanded, onToggle, rfqId }: ItemCardProps) =
 															/>
 														</div>
 														{/* Row 2: Tech specs */}
-														<div className="mb-3 grid grid-cols-2 gap-3 sm:grid-cols-5">
+														<div className="mb-3 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
 															<FormField
 																control={bomForm.control}
 																name={`bom.${i}.diameter`}
 																render={({ field }) => (
 																	<FormItem className="flex flex-col gap-1.5">
-																		<FormLabel className="text-xs">Diameter</FormLabel>
+																		<FormLabel className="text-xs">Diameter (mm)</FormLabel>
 																		<FormControl>
-																			<Input placeholder="e.g. 12mm" {...field} />
+																			<Input placeholder="e.g. 12" {...field} />
 																		</FormControl>
 																		<FormMessage />
 																	</FormItem>
@@ -711,9 +724,22 @@ const ItemCard = ({ lineItem, idx, expanded, onToggle, rfqId }: ItemCardProps) =
 																name={`bom.${i}.length`}
 																render={({ field }) => (
 																	<FormItem className="flex flex-col gap-1.5">
-																		<FormLabel className="text-xs">Length</FormLabel>
+																		<FormLabel className="text-xs">Length (mm)</FormLabel>
 																		<FormControl>
-																			<Input placeholder="e.g. 50mm" {...field} />
+																			<Input placeholder="e.g. 50" {...field} />
+																		</FormControl>
+																		<FormMessage />
+																	</FormItem>
+																)}
+															/>
+															<FormField
+																control={bomForm.control}
+																name={`bom.${i}.density`}
+																render={({ field }) => (
+																	<FormItem className="flex flex-col gap-1.5">
+																		<FormLabel className="text-xs">Density (g/cm³)</FormLabel>
+																		<FormControl>
+																			<Input placeholder="7.85" {...field} />
 																		</FormControl>
 																		<FormMessage />
 																	</FormItem>
@@ -724,10 +750,15 @@ const ItemCard = ({ lineItem, idx, expanded, onToggle, rfqId }: ItemCardProps) =
 																name={`bom.${i}.weight`}
 																render={({ field }) => (
 																	<FormItem className="flex flex-col gap-1.5">
-																		<FormLabel className="text-xs">Weight</FormLabel>
-																		<FormControl>
-																			<Input placeholder="e.g. 0.5kg" {...field} />
-																		</FormControl>
+																		<FormLabel className="text-xs">Weight (kg)</FormLabel>
+																		<div className="flex gap-1">
+																			<FormControl>
+																				<Input placeholder="e.g. 0.5" {...field} />
+																			</FormControl>
+																			<Button className="h-9 shrink-0 px-2 text-[10px]" onClick={() => calcBomWeight(i)} size="sm" type="button" variant="outline">
+																				Calc
+																			</Button>
+																		</div>
 																		<FormMessage />
 																	</FormItem>
 																)}
@@ -913,10 +944,11 @@ const ItemCard = ({ lineItem, idx, expanded, onToggle, rfqId }: ItemCardProps) =
 													<ReadOnlyField label="Material" value={entry.material} />
 													<ReadOnlyField label="Quantity" value={String(entry.quantity)} />
 												</div>
-												<div className="mb-2 grid grid-cols-2 gap-3 sm:grid-cols-5">
-													<ReadOnlyField label="Diameter" value={entry.diameter} />
-													<ReadOnlyField label="Length" value={entry.length} />
-													<ReadOnlyField label="Weight" value={entry.weight} />
+												<div className="mb-2 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+													<ReadOnlyField label="Diameter (mm)" value={entry.diameter} />
+													<ReadOnlyField label="Length (mm)" value={entry.length} />
+													<ReadOnlyField label="Density (g/cm³)" value={entry.density} />
+													<ReadOnlyField label="Weight (kg)" value={entry.weight} />
 													<ReadOnlyField label="Grade" value={entry.grade} />
 													<ReadOnlyField label="Make" value={entry.make} />
 												</div>

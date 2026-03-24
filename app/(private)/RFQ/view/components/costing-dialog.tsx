@@ -79,7 +79,14 @@ const CostingDialog = ({ lineItem, rfqId }: CostingDialogProps) => {
 			};
 		}
 		return {
-			parts: bom.length > 0 ? bom.map(b => ({ ...defaultManualPart(b.partName, b.quantity) })) : [defaultManualPart(lineItem.item?.itemName || "Part 1")],
+			parts: bom.length > 0
+				? bom.map(b => ({
+						...defaultManualPart(b.partName, b.quantity),
+						diameter: parseFloat(b.diameter ?? "0") || 0,
+						length: parseFloat(b.length ?? "0") || 0,
+						density: parseFloat(b.density ?? "7.85") || 7.85,
+					}))
+				: [defaultManualPart(lineItem.item?.itemName || "Part 1")],
 			packingCost: 0,
 			shippingCost: 0,
 			otherCosts: 0,

@@ -4,11 +4,13 @@ import axios from "@config/axios";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@components/ui/button";
 import { Separator } from "@components/ui/separator";
-import { ArrowLeft } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@components/ui/tabs";
+import { ArrowLeft, Package, Calculator, Wrench } from "lucide-react";
 import RfqInfoCard from "./rfq-info-card";
 import RfqItemsSection from "./rfq-items-section";
 import BulkDrawingUpload from "./bulk-drawing-upload";
 import CostingSummary from "./costing-summary";
+import TechnicalSummary from "./technical-summary";
 import MarkQuotedDialog from "./mark-quoted-dialog";
 
 interface RfqViewContentProps {
@@ -54,11 +56,35 @@ const RfqViewContent = ({ rfq: initialRfq }: RfqViewContentProps) => {
 			<RfqInfoCard rfq={rfq} />
 
 			{hasPopulatedItems ? (
-				<>
-					<RfqItemsSection items={items} rfqId={rfq._id} />
-					<CostingSummary items={items} rfqId={rfq._id} />
-					<BulkDrawingUpload items={items} rfqId={rfq._id} />
-				</>
+				<Tabs defaultValue="line-items" className="w-full">
+					<TabsList>
+						<TabsTrigger value="line-items" className="gap-1.5">
+							<Package className="h-4 w-4" />
+							Line Items
+						</TabsTrigger>
+						<TabsTrigger value="costing" className="gap-1.5">
+							<Calculator className="h-4 w-4" />
+							Costing Summary
+						</TabsTrigger>
+						<TabsTrigger value="technical" className="gap-1.5">
+							<Wrench className="h-4 w-4" />
+							Technical Summary
+						</TabsTrigger>
+					</TabsList>
+
+					<TabsContent value="line-items" className="space-y-4">
+						<RfqItemsSection items={items} rfqId={rfq._id} />
+						<BulkDrawingUpload items={items} rfqId={rfq._id} />
+					</TabsContent>
+
+					<TabsContent value="costing">
+						<CostingSummary items={items} rfqId={rfq._id} />
+					</TabsContent>
+
+					<TabsContent value="technical">
+						<TechnicalSummary items={items} rfqId={rfq._id} />
+					</TabsContent>
+				</Tabs>
 			) : items.length > 0 ? (
 				<div className="rounded-xl border bg-card p-6">
 					<p className="text-sm text-muted-foreground">This RFQ has {items.length} item(s) but item details are not populated.</p>
