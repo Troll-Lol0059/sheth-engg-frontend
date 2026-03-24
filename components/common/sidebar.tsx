@@ -48,7 +48,7 @@ const Sidebar = ({ menuItems }: SidebarProps) => {
 		<aside
 			className={cn(
 				"border-border bg-background sticky inset-y-0 left-0 z-20 hidden h-screen shrink-0 -translate-x-full border-r py-5 transition-[width] duration-300 ease-in-out lg:flex lg:translate-x-0 lg:flex-col lg:items-center lg:justify-between",
-				sidebarIsOpen ? "w-72 px-5" : "w-20 px-2"
+				sidebarIsOpen ? "w-60 px-5" : "w-20 px-2"
 			)}
 		>
 			<Button className="bg-accent absolute top-4 -right-4 hidden size-8 lg:flex" onClick={() => setSidebarIsOpen(!sidebarIsOpen)} size="icon" variant="ghost">

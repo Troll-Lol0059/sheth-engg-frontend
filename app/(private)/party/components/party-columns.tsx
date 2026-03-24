@@ -3,9 +3,10 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@components/ui/badge";
 import Options from "./options";
 
-const partyTypeVariantMap: Record<string, "default" | "secondary"> = {
+const partyTypeVariantMap: Record<string, "default" | "secondary" | "outline"> = {
 	RAW_MATERIAL_DEALER: "default",
 	LABOUR_JOB_WORKER: "secondary",
+	COMPLETE_SUPPLY: "outline",
 };
 
 export const partyColumns: ColumnDef<Party>[] = [

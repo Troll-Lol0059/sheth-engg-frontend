@@ -1,16 +1,22 @@
 "use client";
 import { useRef, useState } from "react";
 import axios from "@config/axios";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useForm, useFieldArray } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@components/ui/card";
 import { Button } from "@components/ui/button";
 import { Input } from "@components/ui/input";
-import { Label } from "@components/ui/label";
 import { Badge } from "@components/ui/badge";
 import { Separator } from "@components/ui/separator";
-import { Pencil, Save, X, Package, ChevronDown, ChevronUp, Upload, FileText, ExternalLink, Loader2 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@components/ui/select";
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@components/ui/form";
+import { Pencil, Save, X, Package, ChevronDown, ChevronUp, Upload, FileText, ExternalLink, Loader2, Plus, Trash2, Calculator } from "lucide-react";
 import CostingDialog from "./costing-dialog";
+import { ItemMasterSchema, LineItemSchema, BomSchema } from "@/schemas/rfq";
+import type { ItemMasterFormValues, LineItemFormValues, BomFormValues } from "@/schemas/rfq";
 
 interface RfqItemsSectionProps {
 	items: RfqLineItem[];
@@ -83,24 +89,86 @@ const ItemCard = ({ lineItem, idx, expanded, onToggle, rfqId }: ItemCardProps) =
 	const queryClient = useQueryClient();
 	const fileInputRef = useRef<HTMLInputElement>(null);
 	const [isEditing, setIsEditing] = useState(false);
-	const [form, setForm] = useState({
-		quantity: lineItem.quantity,
-		drawingNumber: lineItem.drawingNumber ?? "",
-		itemTechSpecs: {
-			material: lineItem.itemTechSpecs?.material ?? "",
-			diameter: lineItem.itemTechSpecs?.diameter ?? "",
-			length: lineItem.itemTechSpecs?.length ?? "",
-			weight: lineItem.itemTechSpecs?.weight ?? "",
-			grade: lineItem.itemTechSpecs?.grade ?? "",
+
+	const { data: hardnessTypes = [] } = useQuery<HardnessType[]>({
+		queryKey: ["hardness-types-all-select"],
+		queryFn: async () => {
+			const response = await axios.get("/api/v1/master/hardness-type/all?page=1&size=100&sortBy=name&sortOrder=asc");
+			return response?.data?.data?.data ?? [];
+		},
+		enabled: isEditing,
+	});
+
+	const { data: hardnessMeasurements = [] } = useQuery<HardnessMeasurement[]>({
+		queryKey: ["hardness-measurements-all-select"],
+		queryFn: async () => {
+			const response = await axios.get("/api/v1/master/hardness-measurement/all?page=1&size=100&sortBy=name&sortOrder=asc");
+			return response?.data?.data?.data ?? [];
+		},
+		enabled: isEditing,
+	});
+
+	// ── Form 1: Item Master ──
+	const itemMasterForm = useForm<ItemMasterFormValues>({
+		resolver: zodResolver(ItemMasterSchema),
+		defaultValues: {
+			itemName: lineItem.item?.itemName ?? "",
+			itemType: (lineItem.item?.itemType as z.infer<typeof ItemMasterSchema>["itemType"]) ?? "UNIT",
 		},
 	});
 
-	const { mutate, isPending } = useMutation({
-		mutationFn: () =>
+	const { mutate: saveItemMaster, isPending: isSavingItemMaster } = useMutation({
+		mutationFn: async (values: ItemMasterFormValues) => {
+			const response = await axios.put(`/api/v1/item?itemCode=${lineItem.item?.itemCode}`, {
+				itemName: values.itemName,
+				itemType: values.itemType,
+			});
+			return response?.data;
+		},
+		onSuccess: () => {
+			toast.success("Item updated successfully");
+			queryClient.invalidateQueries({ queryKey: ["rfq", rfqId] });
+		},
+		onError: () => {
+			toast.error("Failed to update item");
+		},
+	});
+
+	const watchedItemType = itemMasterForm.watch("itemType");
+	const isSetOrAssembly = watchedItemType === "SET" || watchedItemType === "ASSEMBLY";
+
+	// ── Form 2: Line Item ──
+	const lineItemForm = useForm<LineItemFormValues>({
+		resolver: zodResolver(LineItemSchema),
+		defaultValues: {
+			quantity: lineItem.quantity,
+			drawingNumber: lineItem.drawingNumber ?? "",
+			itemTechSpecs: {
+				material: lineItem.itemTechSpecs?.material ?? "",
+				diameter: lineItem.itemTechSpecs?.diameter ?? "",
+				length: lineItem.itemTechSpecs?.length ?? "",
+				weight: lineItem.itemTechSpecs?.weight ?? "",
+				grade: lineItem.itemTechSpecs?.grade ?? "",
+				hardness: (lineItem.itemTechSpecs?.hardness ?? []).map(h => ({
+					hardnessType: h.hardnessType,
+					value: h.value,
+					measurement: h.measurement,
+				})),
+			},
+		},
+	});
+
+	const { fields: hardnessFields, append: appendHardness, remove: removeHardness } = useFieldArray({
+		control: lineItemForm.control,
+		name: "itemTechSpecs.hardness",
+	});
+
+	const { mutate: saveLineItem, isPending: isSavingLineItem } = useMutation({
+		mutationFn: (values: LineItemFormValues) =>
 			updateRfqItemApi(lineItem._id, {
-				quantity: form.quantity,
-				drawingNumber: form.drawingNumber,
-				itemTechSpecs: form.itemTechSpecs,
+				quantity: values.quantity,
+				drawingNumber: values.drawingNumber,
+				itemTechSpecs: values.itemTechSpecs,
 			}),
 		onSuccess: () => {
 			toast.success("Item updated successfully");
@@ -112,6 +180,60 @@ const ItemCard = ({ lineItem, idx, expanded, onToggle, rfqId }: ItemCardProps) =
 		},
 	});
 
+	// ── Form 3: BOM ──
+	const bomForm = useForm<BomFormValues>({
+		resolver: zodResolver(BomSchema),
+		defaultValues: {
+			bom: (lineItem.item?.bom ?? []).map(b => ({
+				partName: b.partName,
+				partDescription: b.partDescription ?? "",
+				material: b.material ?? "",
+				quantity: b.quantity,
+				diameter: b.diameter ?? "",
+				length: b.length ?? "",
+				weight: b.weight ?? "",
+				grade: b.grade ?? "",
+				make: b.make ?? "",
+				remarks: b.remarks ?? "",
+				hardness: (b.hardness ?? []).map(h => ({ hardnessType: h.hardnessType, value: h.value, measurement: h.measurement })),
+			})),
+		},
+	});
+
+	const { fields: bomFields, append: appendBom, remove: removeBom } = useFieldArray({
+		control: bomForm.control,
+		name: "bom",
+	});
+
+	const { mutate: saveBom, isPending: isSavingBom } = useMutation({
+		mutationFn: async (values: BomFormValues) => {
+			const response = await axios.put(`/api/v1/item?itemCode=${lineItem.item?.itemCode}`, { bom: values.bom });
+			return response?.data;
+		},
+		onSuccess: () => {
+			toast.success("BOM saved successfully");
+			queryClient.invalidateQueries({ queryKey: ["rfq", rfqId] });
+		},
+		onError: () => {
+			toast.error("Failed to save BOM");
+		},
+	});
+
+	// ── BOM nested hardness helpers (manual setValue/getValues) ──
+	const addBomHardness = (bomIdx: number) => {
+		const current = bomForm.getValues(`bom.${bomIdx}.hardness`) ?? [];
+		bomForm.setValue(`bom.${bomIdx}.hardness`, [...current, { hardnessType: "", value: "", measurement: "" }]);
+	};
+
+	const removeBomHardness = (bomIdx: number, hIdx: number) => {
+		const current = bomForm.getValues(`bom.${bomIdx}.hardness`) ?? [];
+		bomForm.setValue(
+			`bom.${bomIdx}.hardness`,
+			current.filter((_, j) => j !== hIdx)
+		);
+	};
+
+	// ── Drawing upload (not a form) ──
 	const { mutate: uploadDrawing, isPending: isUploading } = useMutation({
 		mutationFn: (file: File) => uploadDrawingApi(lineItem._id, file),
 		onSuccess: () => {
@@ -140,7 +262,11 @@ const ItemCard = ({ lineItem, idx, expanded, onToggle, rfqId }: ItemCardProps) =
 	};
 
 	const handleCancel = () => {
-		setForm({
+		itemMasterForm.reset({
+			itemName: lineItem.item?.itemName ?? "",
+			itemType: (lineItem.item?.itemType as z.infer<typeof ItemMasterSchema>["itemType"]) ?? "UNIT",
+		});
+		lineItemForm.reset({
 			quantity: lineItem.quantity,
 			drawingNumber: lineItem.drawingNumber ?? "",
 			itemTechSpecs: {
@@ -149,21 +275,38 @@ const ItemCard = ({ lineItem, idx, expanded, onToggle, rfqId }: ItemCardProps) =
 				length: lineItem.itemTechSpecs?.length ?? "",
 				weight: lineItem.itemTechSpecs?.weight ?? "",
 				grade: lineItem.itemTechSpecs?.grade ?? "",
+				hardness: (lineItem.itemTechSpecs?.hardness ?? []).map(h => ({
+					hardnessType: h.hardnessType,
+					value: h.value,
+					measurement: h.measurement,
+				})),
 			},
+		});
+		bomForm.reset({
+			bom: (lineItem.item?.bom ?? []).map(b => ({
+				partName: b.partName,
+				partDescription: b.partDescription ?? "",
+				material: b.material ?? "",
+				quantity: b.quantity,
+				diameter: b.diameter ?? "",
+				length: b.length ?? "",
+				weight: b.weight ?? "",
+				grade: b.grade ?? "",
+				make: b.make ?? "",
+				remarks: b.remarks ?? "",
+				hardness: (b.hardness ?? []).map(h => ({ hardnessType: h.hardnessType, value: h.value, measurement: h.measurement })),
+			})),
 		});
 		setIsEditing(false);
 	};
-
-	const updateTech = (key: string, value: string) =>
-		setForm(prev => ({ ...prev, itemTechSpecs: { ...prev.itemTechSpecs, [key]: value } }));
 
 	return (
 		<div className="rounded-lg border bg-card">
 			{/* Collapsed header */}
 			<button className="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-muted/50" onClick={onToggle} type="button">
 				<div className="flex items-center gap-4">
-					<Badge className="h-7 w-7 items-center justify-center rounded-full p-0" variant="outline">
-						{idx + 1}
+					<Badge className="flex h-7 min-w-7 items-center justify-center rounded-full px-1.5" variant="outline">
+						{lineItem.serialNumber || idx + 1}
 					</Badge>
 					<div>
 						<p className="text-sm font-semibold">{lineItem.item?.itemName || "Unknown Item"}</p>
@@ -174,6 +317,7 @@ const ItemCard = ({ lineItem, idx, expanded, onToggle, rfqId }: ItemCardProps) =
 					</div>
 				</div>
 				<div className="flex items-center gap-2">
+					{(lineItem.commercialSpecs?.totalCost > 0 || lineItem.commercialSpecs?.sellingPrice > 0) && <Calculator className="h-4 w-4 text-blue-600" />}
 					{lineItem.drawingUrl && <FileText className="h-4 w-4 text-green-600" />}
 					{expanded ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
 				</div>
@@ -194,25 +338,73 @@ const ItemCard = ({ lineItem, idx, expanded, onToggle, rfqId }: ItemCardProps) =
 							</div>
 						) : (
 							<div className="flex gap-2">
-								<Button disabled={isPending} onClick={handleCancel} size="sm" variant="outline">
+								<Button disabled={isSavingLineItem} onClick={handleCancel} size="sm" variant="outline">
 									<X className="mr-2 h-3 w-3" />
 									Cancel
 								</Button>
-								<Button disabled={isPending} onClick={() => mutate()} size="sm">
+								<Button disabled={isSavingLineItem} onClick={lineItemForm.handleSubmit(values => saveLineItem(values))} size="sm">
 									<Save className="mr-2 h-3 w-3" />
-									{isPending ? "Saving..." : "Save"}
+									{isSavingLineItem ? "Saving..." : "Save"}
 								</Button>
 							</div>
 						)}
 					</div>
 
-					{/* Item master info (always read-only) */}
-					<div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-						<ReadOnlyField label="Item Code" value={lineItem.item?.itemCode} />
-						<ReadOnlyField label="Item Name" value={lineItem.item?.itemName} />
-						<ReadOnlyField label="Description" value={lineItem.item?.itemDesc} />
-						<ReadOnlyField label="Type" value={lineItem.item?.itemType} />
-					</div>
+					{/* Item master info */}
+					{isEditing ? (
+						<Form {...itemMasterForm}>
+							<div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+								<ReadOnlyField label="Item Code" value={lineItem.item?.itemCode} />
+								<FormField
+									control={itemMasterForm.control}
+									name="itemName"
+									render={({ field }) => (
+										<FormItem className="flex flex-col gap-1.5">
+											<FormLabel className="text-xs">Item Name</FormLabel>
+											<FormControl>
+												<Input {...field} />
+											</FormControl>
+											<FormMessage />
+										</FormItem>
+									)}
+								/>
+								<ReadOnlyField label="Description" value={lineItem.item?.itemDesc} />
+								<FormField
+									control={itemMasterForm.control}
+									name="itemType"
+									render={({ field }) => (
+										<FormItem className="flex flex-col gap-1.5">
+											<FormLabel className="text-xs">Type</FormLabel>
+											<Select onValueChange={field.onChange} value={field.value}>
+												<FormControl>
+													<SelectTrigger>
+														<SelectValue placeholder="Select type" />
+													</SelectTrigger>
+												</FormControl>
+												<SelectContent>
+													<SelectItem value="UNIT">UNIT</SelectItem>
+													<SelectItem value="SET">SET</SelectItem>
+													<SelectItem value="ASSEMBLY">ASSEMBLY</SelectItem>
+												</SelectContent>
+											</Select>
+											<FormMessage />
+										</FormItem>
+									)}
+								/>
+								<Button className="self-end" disabled={isSavingItemMaster} onClick={itemMasterForm.handleSubmit(values => saveItemMaster(values))} size="sm" variant="outline">
+									<Save className="mr-2 h-3 w-3" />
+									{isSavingItemMaster ? "Saving..." : "Save Item"}
+								</Button>
+							</div>
+						</Form>
+					) : (
+						<div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+							<ReadOnlyField label="Item Code" value={lineItem.item?.itemCode} />
+							<ReadOnlyField label="Item Name" value={lineItem.item?.itemName} />
+							<ReadOnlyField label="Description" value={lineItem.item?.itemDesc} />
+							<ReadOnlyField label="Type" value={lineItem.item?.itemType} />
+						</div>
+					)}
 
 					{/* Drawing section */}
 					<Separator className="my-4" />
@@ -225,63 +417,448 @@ const ItemCard = ({ lineItem, idx, expanded, onToggle, rfqId }: ItemCardProps) =
 
 					{isEditing ? (
 						<>
-							{/* Editable: Quantity & Drawing */}
-							<Separator className="my-4" />
-							<div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
-								<div className="flex flex-col gap-1.5">
-									<Label className="text-xs">Quantity</Label>
-									<Input min={1} onChange={e => setForm(prev => ({ ...prev, quantity: Number(e.target.value) }))} type="number" value={form.quantity} />
+							{/* Editable: Line Item Form (Quantity, Drawing Number, Tech Specs, Hardness) */}
+							<Form {...lineItemForm}>
+								<Separator className="my-4" />
+								<div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+									<FormField
+										control={lineItemForm.control}
+										name="quantity"
+										render={({ field }) => (
+											<FormItem className="flex flex-col gap-1.5">
+												<FormLabel className="text-xs">Quantity</FormLabel>
+												<FormControl>
+													<Input min={1} type="number" {...field} onChange={e => field.onChange(Number(e.target.value))} />
+												</FormControl>
+												<FormMessage />
+											</FormItem>
+										)}
+									/>
+									<FormField
+										control={lineItemForm.control}
+										name="drawingNumber"
+										render={({ field }) => (
+											<FormItem className="flex flex-col gap-1.5">
+												<FormLabel className="text-xs">Drawing Number</FormLabel>
+												<FormControl>
+													<Input {...field} />
+												</FormControl>
+												<FormMessage />
+											</FormItem>
+										)}
+									/>
 								</div>
-								<div className="flex flex-col gap-1.5">
-									<Label className="text-xs">Drawing Number</Label>
-									<Input onChange={e => setForm(prev => ({ ...prev, drawingNumber: e.target.value }))} value={form.drawingNumber} />
-								</div>
-							</div>
 
-							{/* Editable: Technical Specifications */}
-							<Separator className="my-4" />
-							<h5 className="mb-3 text-sm font-semibold">Technical Specifications</h5>
-							<div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-								<div className="flex flex-col gap-1.5">
-									<Label className="text-xs">Material</Label>
-									<Input onChange={e => updateTech("material", e.target.value)} value={form.itemTechSpecs.material} />
+								{/* Technical Specifications */}
+								<Separator className="my-4" />
+								<h5 className="mb-3 text-sm font-semibold">Technical Specifications</h5>
+								<div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+									<FormField
+										control={lineItemForm.control}
+										name="itemTechSpecs.material"
+										render={({ field }) => (
+											<FormItem className="flex flex-col gap-1.5">
+												<FormLabel className="text-xs">Material</FormLabel>
+												<FormControl>
+													<Input {...field} />
+												</FormControl>
+												<FormMessage />
+											</FormItem>
+										)}
+									/>
+									<FormField
+										control={lineItemForm.control}
+										name="itemTechSpecs.diameter"
+										render={({ field }) => (
+											<FormItem className="flex flex-col gap-1.5">
+												<FormLabel className="text-xs">Diameter</FormLabel>
+												<FormControl>
+													<Input {...field} />
+												</FormControl>
+												<FormMessage />
+											</FormItem>
+										)}
+									/>
+									<FormField
+										control={lineItemForm.control}
+										name="itemTechSpecs.length"
+										render={({ field }) => (
+											<FormItem className="flex flex-col gap-1.5">
+												<FormLabel className="text-xs">Length</FormLabel>
+												<FormControl>
+													<Input {...field} />
+												</FormControl>
+												<FormMessage />
+											</FormItem>
+										)}
+									/>
+									<FormField
+										control={lineItemForm.control}
+										name="itemTechSpecs.weight"
+										render={({ field }) => (
+											<FormItem className="flex flex-col gap-1.5">
+												<FormLabel className="text-xs">Weight</FormLabel>
+												<FormControl>
+													<Input {...field} />
+												</FormControl>
+												<FormMessage />
+											</FormItem>
+										)}
+									/>
+									<FormField
+										control={lineItemForm.control}
+										name="itemTechSpecs.grade"
+										render={({ field }) => (
+											<FormItem className="flex flex-col gap-1.5">
+												<FormLabel className="text-xs">Grade</FormLabel>
+												<FormControl>
+													<Input {...field} />
+												</FormControl>
+												<FormMessage />
+											</FormItem>
+										)}
+									/>
 								</div>
-								<div className="flex flex-col gap-1.5">
-									<Label className="text-xs">Diameter</Label>
-									<Input onChange={e => updateTech("diameter", e.target.value)} value={form.itemTechSpecs.diameter} />
-								</div>
-								<div className="flex flex-col gap-1.5">
-									<Label className="text-xs">Length</Label>
-									<Input onChange={e => updateTech("length", e.target.value)} value={form.itemTechSpecs.length} />
-								</div>
-								<div className="flex flex-col gap-1.5">
-									<Label className="text-xs">Weight</Label>
-									<Input onChange={e => updateTech("weight", e.target.value)} value={form.itemTechSpecs.weight} />
-								</div>
-								<div className="flex flex-col gap-1.5">
-									<Label className="text-xs">Grade</Label>
-									<Input onChange={e => updateTech("grade", e.target.value)} value={form.itemTechSpecs.grade} />
-								</div>
-							</div>
 
-							{/* Read-only: Commercial Specifications (shown during edit too) */}
-							{lineItem.commercialSpecs && (
-								<>
-									<Separator className="my-4" />
-									<h5 className="mb-3 text-sm font-semibold text-muted-foreground">Commercial Specifications (read-only)</h5>
-									<div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-										<ReadOnlyField label="Currency" value={lineItem.commercialSpecs.currency} />
-										<ReadOnlyField label="Raw Material Cost" value={String(lineItem.commercialSpecs.rawMaterialCost)} />
-										<ReadOnlyField label="Labor Cost" value={String(lineItem.commercialSpecs.laborCost)} />
-										<ReadOnlyField label="Packing Cost" value={String(lineItem.commercialSpecs.packingCost)} />
-										<ReadOnlyField label="Shipping Cost" value={String(lineItem.commercialSpecs.shippingCost)} />
-										<ReadOnlyField label="Profit Margin" value={`${lineItem.commercialSpecs.profitMargin}%`} />
-										<ReadOnlyField label="Other Costs" value={String(lineItem.commercialSpecs.otherCosts)} />
-										<ReadOnlyField label="Selling Price" value={String(lineItem.commercialSpecs.sellingPrice)} />
-										<ReadOnlyField label="Total Cost" value={String(lineItem.commercialSpecs.totalCost)} />
+								{/* Hardness */}
+								<Separator className="my-4" />
+								<div className="mb-3 flex items-center justify-between">
+									<h5 className="text-sm font-semibold">Hardness</h5>
+									<Button onClick={() => appendHardness({ hardnessType: "", value: "", measurement: "" })} size="sm" type="button" variant="outline">
+										<Plus className="mr-2 h-3 w-3" />
+										Add Hardness
+									</Button>
+								</div>
+								{hardnessFields.length === 0 ? (
+									<p className="mb-4 text-sm text-muted-foreground">No hardness entries. Click &quot;Add Hardness&quot; to add one.</p>
+								) : (
+									<div className="mb-4 space-y-3">
+										{hardnessFields.map((hField, i) => (
+											<div className="flex items-end gap-3" key={hField.id}>
+												<FormField
+													control={lineItemForm.control}
+													name={`itemTechSpecs.hardness.${i}.hardnessType`}
+													render={({ field }) => (
+														<FormItem className="flex flex-1 flex-col gap-1.5">
+															<FormLabel className="text-xs">Hardness Type</FormLabel>
+															<Select onValueChange={field.onChange} value={field.value}>
+																<FormControl>
+																	<SelectTrigger>
+																		<SelectValue placeholder="Select type" />
+																	</SelectTrigger>
+																</FormControl>
+																<SelectContent>
+																	{hardnessTypes.map(ht => (
+																		<SelectItem key={ht._id} value={ht.name}>
+																			{ht.name}
+																		</SelectItem>
+																	))}
+																</SelectContent>
+															</Select>
+															<FormMessage />
+														</FormItem>
+													)}
+												/>
+												<FormField
+													control={lineItemForm.control}
+													name={`itemTechSpecs.hardness.${i}.value`}
+													render={({ field }) => (
+														<FormItem className="flex flex-1 flex-col gap-1.5">
+															<FormLabel className="text-xs">Value</FormLabel>
+															<FormControl>
+																<Input placeholder="e.g. 200-225" {...field} />
+															</FormControl>
+															<FormMessage />
+														</FormItem>
+													)}
+												/>
+												<FormField
+													control={lineItemForm.control}
+													name={`itemTechSpecs.hardness.${i}.measurement`}
+													render={({ field }) => (
+														<FormItem className="flex flex-1 flex-col gap-1.5">
+															<FormLabel className="text-xs">Measurement</FormLabel>
+															<Select onValueChange={field.onChange} value={field.value}>
+																<FormControl>
+																	<SelectTrigger>
+																		<SelectValue placeholder="Select unit" />
+																	</SelectTrigger>
+																</FormControl>
+																<SelectContent>
+																	{hardnessMeasurements.map(hm => (
+																		<SelectItem key={hm._id} value={hm.name}>
+																			{hm.name}
+																		</SelectItem>
+																	))}
+																</SelectContent>
+															</Select>
+															<FormMessage />
+														</FormItem>
+													)}
+												/>
+												<Button className="mb-0.5" onClick={() => removeHardness(i)} size="icon" type="button" variant="ghost">
+													<Trash2 className="h-4 w-4 text-destructive" />
+												</Button>
+											</div>
+										))}
 									</div>
-								</>
+								)}
+							</Form>
+
+							{/* Editable: BOM (SET/ASSEMBLY only) */}
+							{isSetOrAssembly && (
+								<Form {...bomForm}>
+									<Separator className="my-4" />
+									<div className="mb-3 flex items-center justify-between">
+										<h5 className="text-sm font-semibold">Bill of Materials (BOM)</h5>
+										<div className="flex gap-2">
+											<Button onClick={() => appendBom({ partName: "", partDescription: "", material: "", quantity: 1, diameter: "", length: "", weight: "", grade: "", make: "", remarks: "", hardness: [] })} size="sm" type="button" variant="outline">
+												<Plus className="mr-2 h-3 w-3" />
+												Add Part
+											</Button>
+											<Button disabled={isSavingBom} onClick={bomForm.handleSubmit(values => saveBom(values))} size="sm" type="button">
+												<Save className="mr-2 h-3 w-3" />
+												{isSavingBom ? "Saving..." : "Save BOM"}
+											</Button>
+										</div>
+									</div>
+									{bomFields.length === 0 ? (
+										<p className="mb-4 text-sm text-muted-foreground">No BOM entries. Click &quot;Add Part&quot; to define sub-parts.</p>
+									) : (
+										<div className="mb-4 space-y-4">
+											{bomFields.map((bomField, i) => {
+												const watchedHardness = bomForm.watch(`bom.${i}.hardness`) ?? [];
+												return (
+													<div className="rounded-lg border bg-muted/20 p-4" key={bomField.id}>
+														<div className="mb-3 flex items-center justify-between">
+															<span className="text-sm font-semibold">Part {i + 1}{bomForm.watch(`bom.${i}.partName`) ? ` — ${bomForm.watch(`bom.${i}.partName`)}` : ""}</span>
+															<Button className="h-7 w-7" onClick={() => removeBom(i)} size="icon" type="button" variant="ghost">
+																<Trash2 className="h-4 w-4 text-destructive" />
+															</Button>
+														</div>
+														{/* Row 1: Basic info */}
+														<div className="mb-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+															<FormField
+																control={bomForm.control}
+																name={`bom.${i}.partName`}
+																render={({ field }) => (
+																	<FormItem className="flex flex-col gap-1.5">
+																		<FormLabel className="text-xs">Part Name *</FormLabel>
+																		<FormControl>
+																			<Input placeholder="e.g. Bolt" {...field} />
+																		</FormControl>
+																		<FormMessage />
+																	</FormItem>
+																)}
+															/>
+															<FormField
+																control={bomForm.control}
+																name={`bom.${i}.partDescription`}
+																render={({ field }) => (
+																	<FormItem className="flex flex-col gap-1.5">
+																		<FormLabel className="text-xs">Description</FormLabel>
+																		<FormControl>
+																			<Input placeholder="Optional" {...field} />
+																		</FormControl>
+																		<FormMessage />
+																	</FormItem>
+																)}
+															/>
+															<FormField
+																control={bomForm.control}
+																name={`bom.${i}.material`}
+																render={({ field }) => (
+																	<FormItem className="flex flex-col gap-1.5">
+																		<FormLabel className="text-xs">Material</FormLabel>
+																		<FormControl>
+																			<Input placeholder="e.g. MS" {...field} />
+																		</FormControl>
+																		<FormMessage />
+																	</FormItem>
+																)}
+															/>
+															<FormField
+																control={bomForm.control}
+																name={`bom.${i}.quantity`}
+																render={({ field }) => (
+																	<FormItem className="flex flex-col gap-1.5">
+																		<FormLabel className="text-xs">Qty *</FormLabel>
+																		<FormControl>
+																			<Input min={1} type="number" {...field} onChange={e => field.onChange(Number(e.target.value))} />
+																		</FormControl>
+																		<FormMessage />
+																	</FormItem>
+																)}
+															/>
+														</div>
+														{/* Row 2: Tech specs */}
+														<div className="mb-3 grid grid-cols-2 gap-3 sm:grid-cols-5">
+															<FormField
+																control={bomForm.control}
+																name={`bom.${i}.diameter`}
+																render={({ field }) => (
+																	<FormItem className="flex flex-col gap-1.5">
+																		<FormLabel className="text-xs">Diameter</FormLabel>
+																		<FormControl>
+																			<Input placeholder="e.g. 12mm" {...field} />
+																		</FormControl>
+																		<FormMessage />
+																	</FormItem>
+																)}
+															/>
+															<FormField
+																control={bomForm.control}
+																name={`bom.${i}.length`}
+																render={({ field }) => (
+																	<FormItem className="flex flex-col gap-1.5">
+																		<FormLabel className="text-xs">Length</FormLabel>
+																		<FormControl>
+																			<Input placeholder="e.g. 50mm" {...field} />
+																		</FormControl>
+																		<FormMessage />
+																	</FormItem>
+																)}
+															/>
+															<FormField
+																control={bomForm.control}
+																name={`bom.${i}.weight`}
+																render={({ field }) => (
+																	<FormItem className="flex flex-col gap-1.5">
+																		<FormLabel className="text-xs">Weight</FormLabel>
+																		<FormControl>
+																			<Input placeholder="e.g. 0.5kg" {...field} />
+																		</FormControl>
+																		<FormMessage />
+																	</FormItem>
+																)}
+															/>
+															<FormField
+																control={bomForm.control}
+																name={`bom.${i}.grade`}
+																render={({ field }) => (
+																	<FormItem className="flex flex-col gap-1.5">
+																		<FormLabel className="text-xs">Grade</FormLabel>
+																		<FormControl>
+																			<Input placeholder="e.g. 8.8" {...field} />
+																		</FormControl>
+																		<FormMessage />
+																	</FormItem>
+																)}
+															/>
+															<FormField
+																control={bomForm.control}
+																name={`bom.${i}.make`}
+																render={({ field }) => (
+																	<FormItem className="flex flex-col gap-1.5">
+																		<FormLabel className="text-xs">Make</FormLabel>
+																		<FormControl>
+																			<Input placeholder="e.g. Sundram" {...field} />
+																		</FormControl>
+																		<FormMessage />
+																	</FormItem>
+																)}
+															/>
+														</div>
+														{/* Row 3: Remarks */}
+														<div className="mb-3 grid grid-cols-1 gap-3">
+															<FormField
+																control={bomForm.control}
+																name={`bom.${i}.remarks`}
+																render={({ field }) => (
+																	<FormItem className="flex flex-col gap-1.5">
+																		<FormLabel className="text-xs">Remarks</FormLabel>
+																		<FormControl>
+																			<Input placeholder="Any additional notes" {...field} />
+																		</FormControl>
+																		<FormMessage />
+																	</FormItem>
+																)}
+															/>
+														</div>
+														{/* Row 4: Hardness */}
+														<div className="flex items-center justify-between">
+															<span className="text-xs font-medium text-muted-foreground">Hardness</span>
+															<Button className="h-7" onClick={() => addBomHardness(i)} size="sm" type="button" variant="outline">
+																<Plus className="mr-1 h-3 w-3" />
+																Add
+															</Button>
+														</div>
+														{watchedHardness.length > 0 && (
+															<div className="mt-2 space-y-2">
+																{watchedHardness.map((_, hIdx) => (
+																	<div className="flex items-end gap-3" key={hIdx}>
+																		<FormField
+																			control={bomForm.control}
+																			name={`bom.${i}.hardness.${hIdx}.hardnessType`}
+																			render={({ field }) => (
+																				<FormItem className="flex flex-1 flex-col gap-1.5">
+																					<FormLabel className="text-xs">Type</FormLabel>
+																					<Select onValueChange={field.onChange} value={field.value}>
+																						<FormControl>
+																							<SelectTrigger>
+																								<SelectValue placeholder="Select" />
+																							</SelectTrigger>
+																						</FormControl>
+																						<SelectContent>
+																							{hardnessTypes.map(ht => (
+																								<SelectItem key={ht._id} value={ht.name}>{ht.name}</SelectItem>
+																							))}
+																						</SelectContent>
+																					</Select>
+																					<FormMessage />
+																				</FormItem>
+																			)}
+																		/>
+																		<FormField
+																			control={bomForm.control}
+																			name={`bom.${i}.hardness.${hIdx}.value`}
+																			render={({ field }) => (
+																				<FormItem className="flex flex-1 flex-col gap-1.5">
+																					<FormLabel className="text-xs">Value</FormLabel>
+																					<FormControl>
+																						<Input placeholder="e.g. 200-225" {...field} />
+																					</FormControl>
+																					<FormMessage />
+																				</FormItem>
+																			)}
+																		/>
+																		<FormField
+																			control={bomForm.control}
+																			name={`bom.${i}.hardness.${hIdx}.measurement`}
+																			render={({ field }) => (
+																				<FormItem className="flex flex-1 flex-col gap-1.5">
+																					<FormLabel className="text-xs">Measurement</FormLabel>
+																					<Select onValueChange={field.onChange} value={field.value}>
+																						<FormControl>
+																							<SelectTrigger>
+																								<SelectValue placeholder="Select" />
+																							</SelectTrigger>
+																						</FormControl>
+																						<SelectContent>
+																							{hardnessMeasurements.map(hm => (
+																								<SelectItem key={hm._id} value={hm.name}>{hm.name}</SelectItem>
+																							))}
+																						</SelectContent>
+																					</Select>
+																					<FormMessage />
+																				</FormItem>
+																			)}
+																		/>
+																		<Button className="mb-0.5" onClick={() => removeBomHardness(i, hIdx)} size="icon" type="button" variant="ghost">
+																			<Trash2 className="h-4 w-4 text-destructive" />
+																		</Button>
+																	</div>
+																))}
+															</div>
+														)}
+													</div>
+												);
+											})}
+										</div>
+									)}
+								</Form>
 							)}
+
 						</>
 					) : (
 						<>
@@ -302,26 +879,72 @@ const ItemCard = ({ lineItem, idx, expanded, onToggle, rfqId }: ItemCardProps) =
 										<ReadOnlyField label="Weight" value={lineItem.itemTechSpecs.weight} />
 										<ReadOnlyField label="Grade" value={lineItem.itemTechSpecs.grade} />
 									</div>
+
+									{lineItem.itemTechSpecs.hardness && lineItem.itemTechSpecs.hardness.length > 0 && (
+										<>
+											<Separator className="my-4" />
+											<h5 className="mb-3 text-sm font-semibold">Hardness</h5>
+											<div className="mb-4 space-y-2">
+												{lineItem.itemTechSpecs.hardness.map((h, i) => (
+													<div className="grid grid-cols-3 gap-3 rounded-md border bg-muted/30 px-3 py-2" key={h._id || i}>
+														<ReadOnlyField label="Hardness Type" value={h.hardnessType} />
+														<ReadOnlyField label="Value" value={h.value} />
+														<ReadOnlyField label="Measurement" value={h.measurement} />
+													</div>
+												))}
+											</div>
+										</>
+									)}
 								</>
 							)}
 
-							{lineItem.commercialSpecs && (
+							{/* Read-only: BOM (SET/ASSEMBLY only) */}
+							{isSetOrAssembly && lineItem.item?.bom && lineItem.item.bom.length > 0 && (
 								<>
 									<Separator className="my-4" />
-									<h5 className="mb-3 text-sm font-semibold">Commercial Specifications</h5>
-									<div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-										<ReadOnlyField label="Currency" value={lineItem.commercialSpecs.currency} />
-										<ReadOnlyField label="Raw Material Cost" value={String(lineItem.commercialSpecs.rawMaterialCost)} />
-										<ReadOnlyField label="Labor Cost" value={String(lineItem.commercialSpecs.laborCost)} />
-										<ReadOnlyField label="Packing Cost" value={String(lineItem.commercialSpecs.packingCost)} />
-										<ReadOnlyField label="Shipping Cost" value={String(lineItem.commercialSpecs.shippingCost)} />
-										<ReadOnlyField label="Profit Margin" value={`${lineItem.commercialSpecs.profitMargin}%`} />
-										<ReadOnlyField label="Other Costs" value={String(lineItem.commercialSpecs.otherCosts)} />
-										<ReadOnlyField label="Selling Price" value={String(lineItem.commercialSpecs.sellingPrice)} />
-										<ReadOnlyField label="Total Cost" value={String(lineItem.commercialSpecs.totalCost)} />
+									<h5 className="mb-3 text-sm font-semibold">Bill of Materials (BOM)</h5>
+									<div className="mb-4 space-y-3">
+										{lineItem.item.bom.map((entry, i) => (
+											<div className="rounded-lg border bg-muted/20 p-4" key={entry._id || i}>
+												<p className="mb-2 text-sm font-semibold">Part {i + 1} — {entry.partName || "Unnamed"}</p>
+												<div className="mb-2 grid grid-cols-2 gap-3 sm:grid-cols-4">
+													<ReadOnlyField label="Part Name" value={entry.partName} />
+													<ReadOnlyField label="Description" value={entry.partDescription} />
+													<ReadOnlyField label="Material" value={entry.material} />
+													<ReadOnlyField label="Quantity" value={String(entry.quantity)} />
+												</div>
+												<div className="mb-2 grid grid-cols-2 gap-3 sm:grid-cols-5">
+													<ReadOnlyField label="Diameter" value={entry.diameter} />
+													<ReadOnlyField label="Length" value={entry.length} />
+													<ReadOnlyField label="Weight" value={entry.weight} />
+													<ReadOnlyField label="Grade" value={entry.grade} />
+													<ReadOnlyField label="Make" value={entry.make} />
+												</div>
+												{entry.remarks && (
+													<div className="mb-2">
+														<ReadOnlyField label="Remarks" value={entry.remarks} />
+													</div>
+												)}
+												{entry.hardness && entry.hardness.length > 0 && (
+													<div className="mt-2">
+														<span className="text-xs font-medium text-muted-foreground">Hardness</span>
+														<div className="mt-1 space-y-1">
+															{entry.hardness.map((h, hIdx) => (
+																<div className="grid grid-cols-3 gap-3 rounded-md border bg-background px-3 py-2" key={h._id || hIdx}>
+																	<ReadOnlyField label="Type" value={h.hardnessType} />
+																	<ReadOnlyField label="Value" value={h.value} />
+																	<ReadOnlyField label="Measurement" value={h.measurement} />
+																</div>
+															))}
+														</div>
+													</div>
+												)}
+											</div>
+										))}
 									</div>
 								</>
 							)}
+
 						</>
 					)}
 				</div>

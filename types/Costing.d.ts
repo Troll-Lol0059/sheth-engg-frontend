@@ -7,10 +7,11 @@ type CostingLabourEntry = {
 	cost: number;
 };
 
-type Costing = {
-	_id: string;
-	rfqItem: string | RfqLineItem;
-	rfq: string | Rfq;
+type CostingPart = {
+	_id?: string;
+	partName: string;
+	quantity: number;
+	supplyType: "MANUAL" | "COMPLETE_SUPPLY";
 	diameter: number;
 	length: number;
 	density: number;
@@ -20,9 +21,21 @@ type Costing = {
 	rawMaterialCost: number;
 	labourEntries: CostingLabourEntry[];
 	totalLabourCost: number;
+	completeSupplyRate: number;
+	completeSupplyParty?: string | { _id: string; acName: string };
+	completeSupplyDate?: string;
 	costPrice: number;
 	profitMargin: number;
 	profitAmount: number;
+	partTotal: number;
+};
+
+type Costing = {
+	_id: string;
+	rfqItem: string | RfqLineItem;
+	rfq: string | Rfq;
+	parts: CostingPart[];
+	totalPartsCost: number;
 	packingCost: number;
 	shippingCost: number;
 	otherCosts: number;

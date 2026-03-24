@@ -1,3 +1,10 @@
+type Hardness = {
+	_id?: string;
+	hardnessType: string;
+	value: string;
+	measurement: string;
+};
+
 type RfqItemTechSpecs = {
 	_id: string;
 	material: string;
@@ -5,6 +12,7 @@ type RfqItemTechSpecs = {
 	length: string;
 	weight: string;
 	grade: string;
+	hardness?: Hardness[];
 };
 
 type RfqItemCommercialSpecs = {
@@ -20,6 +28,28 @@ type RfqItemCommercialSpecs = {
 	otherCosts: number;
 };
 
+type BomHardness = {
+	_id?: string;
+	hardnessType: string;
+	value: string;
+	measurement: string;
+};
+
+type BomEntry = {
+	_id?: string;
+	partName: string;
+	partDescription?: string;
+	material?: string;
+	quantity: number;
+	diameter?: string;
+	length?: string;
+	weight?: string;
+	grade?: string;
+	make?: string;
+	remarks?: string;
+	hardness?: BomHardness[];
+};
+
 type RfqItemMaster = {
 	_id: string;
 	itemCode: string;
@@ -27,10 +57,12 @@ type RfqItemMaster = {
 	itemDesc: string;
 	itemType: string;
 	size: string;
+	bom?: BomEntry[];
 };
 
 type RfqLineItem = {
 	_id: string;
+	serialNumber?: string;
 	item: RfqItemMaster;
 	quantity: number;
 	drawingNumber: string;
@@ -50,15 +82,22 @@ type Rfq = {
 	location: string;
 	isQuoted: boolean;
 	quotedOn?: string;
+	quotationNumber?: number;
+	isRevised: boolean;
+	revisionDate?: string;
+	isRegret: boolean;
+	regretDate?: string;
 	status: "PENDING_SELECTION" | "AWARDED" | "COMPLETED" | "PREVIEW" | "ACCEPTING_RESPONSE";
 	deliveryWeeks?: number;
 	items: RfqLineItem[] | string[];
+	quotedItemCount?: number;
 	isDeleted: boolean;
 	createdAt: string;
 	updatedAt: string;
 };
 
 type ParsedItem = {
+	serialNumber?: string;
 	itemCode: string;
 	itemName: string;
 	itemDesc?: string;

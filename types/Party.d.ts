@@ -21,8 +21,8 @@ type Party = {
 	state?: string;
 	statecd?: string;
 	gstin?: string;
-	partyType: "RAW_MATERIAL_DEALER" | "LABOUR_JOB_WORKER";
-	partySubType: { _id: string; name: string; description?: string } | string;
+	partyType: "RAW_MATERIAL_DEALER" | "LABOUR_JOB_WORKER" | "COMPLETE_SUPPLY";
+	partySubType?: { _id: string; name: string; description?: string } | string;
 	isDeleted: boolean;
 	createdAt: string;
 	updatedAt: string;

@@ -3,12 +3,16 @@ import { useState } from "react";
 import axios from "@config/axios";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { RfqInfoSchema, RfqInfoFormValues } from "@schemas/rfq";
 import { Card, CardContent, CardHeader, CardTitle } from "@components/ui/card";
 import { Button } from "@components/ui/button";
 import { Input } from "@components/ui/input";
-import { Label } from "@components/ui/label";
 import { Badge } from "@components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@components/ui/select";
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@components/ui/form";
+import { DatePicker } from "@components/ui/date-picker";
 import { Pencil, Save, X, CalendarDays, Building2, MapPin, User, Hash, Truck } from "lucide-react";
 import { format } from "date-fns";
 
@@ -34,19 +38,25 @@ const updateRfqApi = async (rfqId: string, data: Record<string, unknown>) => {
 const RfqInfoCard = ({ rfq }: RfqInfoCardProps) => {
 	const queryClient = useQueryClient();
 	const [isEditing, setIsEditing] = useState(false);
-	const [form, setForm] = useState({
+
+	const defaultValues: RfqInfoFormValues = {
 		prNumber: rfq.prNumber,
 		companyName: rfq.companyName,
 		location: rfq.location,
-		ownerName: rfq.ownerName,
+		ownerName: rfq.ownerName ?? "",
 		startDate: rfq.startDate?.split("T")[0] ?? "",
 		dueDate: rfq.dueDate?.split("T")[0] ?? "",
-		status: rfq.status,
-		deliveryWeeks: rfq.deliveryWeeks ?? "",
+		status: rfq.status as RfqInfoFormValues["status"],
+		deliveryWeeks: rfq.deliveryWeeks ?? undefined,
+	};
+
+	const form = useForm<RfqInfoFormValues>({
+		resolver: zodResolver(RfqInfoSchema),
+		defaultValues,
 	});
 
 	const { mutate, isPending } = useMutation({
-		mutationFn: () => updateRfqApi(rfq._id, form),
+		mutationFn: (data: RfqInfoFormValues) => updateRfqApi(rfq._id, data as unknown as Record<string, unknown>),
 		onSuccess: () => {
 			toast.success("RFQ updated successfully");
 			queryClient.invalidateQueries({ queryKey: ["rfq", rfq._id] });
@@ -57,21 +67,14 @@ const RfqInfoCard = ({ rfq }: RfqInfoCardProps) => {
 		},
 	});
 
-	const handleCancel = () => {
-		setForm({
-			prNumber: rfq.prNumber,
-			companyName: rfq.companyName,
-			location: rfq.location,
-			ownerName: rfq.ownerName,
-			startDate: rfq.startDate?.split("T")[0] ?? "",
-			dueDate: rfq.dueDate?.split("T")[0] ?? "",
-			status: rfq.status,
-			deliveryWeeks: rfq.deliveryWeeks ?? "",
-		});
-		setIsEditing(false);
+	const onSubmit = (data: RfqInfoFormValues) => {
+		mutate(data);
 	};
 
-	const update = (key: string, value: string | number) => setForm(prev => ({ ...prev, [key]: value }));
+	const handleCancel = () => {
+		form.reset(defaultValues);
+		setIsEditing(false);
+	};
 
 	if (!isEditing) {
 		return (
@@ -107,66 +110,158 @@ const RfqInfoCard = ({ rfq }: RfqInfoCardProps) => {
 
 	return (
 		<Card className="border-primary/20">
-			<CardHeader className="flex flex-row items-center justify-between">
-				<CardTitle className="text-lg">Edit RFQ Information</CardTitle>
-				<div className="flex gap-2">
-					<Button disabled={isPending} onClick={handleCancel} size="sm" variant="outline">
-						<X className="mr-2 h-4 w-4" />
-						Cancel
-					</Button>
-					<Button disabled={isPending} onClick={() => mutate()} size="sm">
-						<Save className="mr-2 h-4 w-4" />
-						{isPending ? "Saving..." : "Save"}
-					</Button>
-				</div>
-			</CardHeader>
-			<CardContent>
-				<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-					<div className="flex flex-col gap-1.5">
-						<Label htmlFor="prNumber">PR Number</Label>
-						<Input id="prNumber" onChange={e => update("prNumber", e.target.value)} value={form.prNumber} />
-					</div>
-					<div className="flex flex-col gap-1.5">
-						<Label htmlFor="companyName">Company</Label>
-						<Input id="companyName" onChange={e => update("companyName", e.target.value)} value={form.companyName} />
-					</div>
-					<div className="flex flex-col gap-1.5">
-						<Label htmlFor="location">Location</Label>
-						<Input id="location" onChange={e => update("location", e.target.value)} value={form.location} />
-					</div>
-					<div className="flex flex-col gap-1.5">
-						<Label htmlFor="ownerName">Owner</Label>
-						<Input id="ownerName" onChange={e => update("ownerName", e.target.value)} value={form.ownerName} />
-					</div>
-					<div className="flex flex-col gap-1.5">
-						<Label htmlFor="startDate">Start Date</Label>
-						<input className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" id="startDate" onChange={e => update("startDate", e.target.value)} type="date" value={form.startDate} />
-					</div>
-					<div className="flex flex-col gap-1.5">
-						<Label htmlFor="dueDate">Due Date</Label>
-						<input className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" id="dueDate" onChange={e => update("dueDate", e.target.value)} type="date" value={form.dueDate} />
-					</div>
-					<div className="flex flex-col gap-1.5">
-						<Label htmlFor="status">Status</Label>
-						<Select onValueChange={val => update("status", val)} value={form.status}>
-							<SelectTrigger>
-								<SelectValue />
-							</SelectTrigger>
-							<SelectContent>
-								{statusOptions.map(s => (
-									<SelectItem key={s} value={s}>
-										{s.replace(/_/g, " ")}
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
-					</div>
-					<div className="flex flex-col gap-1.5">
-						<Label htmlFor="deliveryWeeks">Delivery Weeks</Label>
-						<Input id="deliveryWeeks" min={1} max={52} onChange={e => update("deliveryWeeks", Number(e.target.value))} type="number" value={form.deliveryWeeks} />
-					</div>
-				</div>
-			</CardContent>
+			<Form {...form}>
+				<form onSubmit={form.handleSubmit(onSubmit)}>
+					<CardHeader className="flex flex-row items-center justify-between">
+						<CardTitle className="text-lg">Edit RFQ Information</CardTitle>
+						<div className="flex gap-2">
+							<Button disabled={isPending} onClick={handleCancel} size="sm" type="button" variant="outline">
+								<X className="mr-2 h-4 w-4" />
+								Cancel
+							</Button>
+							<Button disabled={isPending} size="sm" type="submit">
+								<Save className="mr-2 h-4 w-4" />
+								{isPending ? "Saving..." : "Save"}
+							</Button>
+						</div>
+					</CardHeader>
+					<CardContent>
+						<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+							<FormField
+								control={form.control}
+								name="prNumber"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>PR Number</FormLabel>
+										<FormControl>
+											<Input {...field} />
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+							<FormField
+								control={form.control}
+								name="companyName"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Company</FormLabel>
+										<FormControl>
+											<Input {...field} />
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+							<FormField
+								control={form.control}
+								name="location"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Location</FormLabel>
+										<FormControl>
+											<Input {...field} />
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+							<FormField
+								control={form.control}
+								name="ownerName"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Owner</FormLabel>
+										<FormControl>
+											<Input {...field} />
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+							<FormField
+								control={form.control}
+								name="startDate"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Start Date</FormLabel>
+										<FormControl>
+											<DatePicker
+												disabledRange={() => false}
+												onChange={date => field.onChange(date ? format(date, "yyyy-MM-dd") : "")}
+												placeholder="Select start date"
+												value={field.value ? new Date(field.value) : undefined}
+											/>
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+							<FormField
+								control={form.control}
+								name="dueDate"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Due Date</FormLabel>
+										<FormControl>
+											<DatePicker
+												disabledRange={() => false}
+												onChange={date => field.onChange(date ? format(date, "yyyy-MM-dd") : "")}
+												placeholder="Select due date"
+												value={field.value ? new Date(field.value) : undefined}
+											/>
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+							<FormField
+								control={form.control}
+								name="status"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Status</FormLabel>
+										<Select onValueChange={field.onChange} value={field.value}>
+											<FormControl>
+												<SelectTrigger>
+													<SelectValue />
+												</SelectTrigger>
+											</FormControl>
+											<SelectContent>
+												{statusOptions.map(s => (
+													<SelectItem key={s} value={s}>
+														{s.replace(/_/g, " ")}
+													</SelectItem>
+												))}
+											</SelectContent>
+										</Select>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+							<FormField
+								control={form.control}
+								name="deliveryWeeks"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Delivery Weeks</FormLabel>
+										<FormControl>
+											<Input
+												max={52}
+												min={0}
+												onChange={e => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))}
+												type="number"
+												value={field.value ?? ""}
+											/>
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+						</div>
+					</CardContent>
+				</form>
+			</Form>
 		</Card>
 	);
 };

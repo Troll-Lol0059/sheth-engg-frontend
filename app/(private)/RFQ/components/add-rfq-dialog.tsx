@@ -2,6 +2,7 @@
 import { useState } from "react";
 import axios from "@config/axios";
 import { AxiosError } from "axios";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "@components/ui/toaster";
 import { Button } from "@components/ui/button";
 import { FileInput } from "@components/ui/file-input";
@@ -14,6 +15,7 @@ interface AddRfqDialogProps {
 }
 
 const AddRfqDialog = ({ onConfirmed }: AddRfqDialogProps) => {
+	const queryClient = useQueryClient();
 	const [open, setOpen] = useState(false);
 	const [files, setFiles] = useState<File[]>([]);
 	const [isUploading, setIsUploading] = useState(false);
@@ -101,6 +103,7 @@ const AddRfqDialog = ({ onConfirmed }: AddRfqDialogProps) => {
 
 			setOpen(false);
 			resetState();
+			queryClient.invalidateQueries({ queryKey: ["rfqs-all"] });
 			onConfirmed?.();
 		} catch (error: unknown) {
 			const errorData = (error as AxiosError)?.response?.data as ErrorData;

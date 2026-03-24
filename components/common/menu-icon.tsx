@@ -5,19 +5,25 @@ import {
 	CircleHelp,
 	CircleUserRound,
 	ClipboardPenLine,
+	Clock,
 	Cog,
 	Contact,
+	FileCheck,
+	Gem,
 	LandPlot,
 	LayoutDashboard,
 	NotebookPen,
 	Package,
+	RefreshCw,
 	Route,
+	Ruler,
 	SlidersHorizontal,
 	UserCheck,
 	UserRoundCheck,
 	UsersRound,
 	Waypoints,
 	Wrench,
+	XCircle,
 } from "lucide-react";
 
 type MenuIconProps = {
@@ -62,6 +68,18 @@ const MenuIcon = ({ icon }: MenuIconProps) => {
 			return <Route />;
 		case "circle-help":
 			return <CircleHelp />;
+		case "Clock":
+			return <Clock />;
+		case "FileCheck":
+			return <FileCheck />;
+		case "RefreshCw":
+			return <RefreshCw />;
+		case "XCircle":
+			return <XCircle />;
+		case "Gem":
+			return <Gem />;
+		case "Ruler":
+			return <Ruler />;
 		default:
 			return <CircleDot />;
 	}

@@ -50,8 +50,8 @@ const Options = ({ party }: OptionsProps) => {
 	const { data: rawMaterialTypes = [] } = useQuery<{ _id: string; name: string }[]>({
 		queryKey: ["raw-material-types-all"],
 		queryFn: async () => {
-			const response = await axios.get("/api/v1/master/raw-material-type/all");
-			return response?.data?.data ?? [];
+			const response = await axios.get("/api/v1/master/raw-material-type/all?page=1&size=200");
+			return response?.data?.data?.data ?? [];
 		},
 		enabled: form.partyType === "RAW_MATERIAL_DEALER" && openEditDialog,
 		initialData: [],
@@ -61,8 +61,8 @@ const Options = ({ party }: OptionsProps) => {
 	const { data: labourProcessTypes = [] } = useQuery<{ _id: string; name: string }[]>({
 		queryKey: ["labour-process-types-all"],
 		queryFn: async () => {
-			const response = await axios.get("/api/v1/master/labour-process-type/all");
-			return response?.data?.data ?? [];
+			const response = await axios.get("/api/v1/master/labour-process-type/all?page=1&size=200");
+			return response?.data?.data?.data ?? [];
 		},
 		enabled: form.partyType === "LABOUR_JOB_WORKER" && openEditDialog,
 		initialData: [],
@@ -175,24 +175,27 @@ const Options = ({ party }: OptionsProps) => {
 									<SelectContent>
 										<SelectItem value="RAW_MATERIAL_DEALER">Raw Material Dealer</SelectItem>
 										<SelectItem value="LABOUR_JOB_WORKER">Labour Job Worker</SelectItem>
+										<SelectItem value="COMPLETE_SUPPLY">Complete Supply</SelectItem>
 									</SelectContent>
 								</Select>
 							</div>
-							<div className="flex flex-col gap-2">
-								<label className="text-sm font-medium">Sub Type</label>
-								<Select disabled={!form.partyType} onValueChange={val => updateField("partySubType", val)} value={form.partySubType}>
-									<SelectTrigger>
-										<SelectValue placeholder="Select sub type" />
-									</SelectTrigger>
-									<SelectContent>
-										{subTypeOptions.map(opt => (
-											<SelectItem key={opt._id} value={opt._id}>
-												{opt.name}
-											</SelectItem>
-										))}
-									</SelectContent>
-								</Select>
-							</div>
+							{form.partyType !== "COMPLETE_SUPPLY" && (
+								<div className="flex flex-col gap-2">
+									<label className="text-sm font-medium">Sub Type</label>
+									<Select disabled={!form.partyType} onValueChange={val => updateField("partySubType", val)} value={form.partySubType}>
+										<SelectTrigger>
+											<SelectValue placeholder="Select sub type" />
+										</SelectTrigger>
+										<SelectContent>
+											{subTypeOptions.map(opt => (
+												<SelectItem key={opt._id} value={opt._id}>
+													{opt.name}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
+								</div>
+							)}
 						</div>
 
 						<div className="grid grid-cols-2 gap-4">
