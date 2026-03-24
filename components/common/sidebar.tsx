@@ -28,7 +28,7 @@ const Sidebar = ({ menuItems }: SidebarProps) => {
 
 	async function onLogout() {
 		setOnLogoutToast(toast.loading("Loading...", { description: "Please wait while we Logout you!" }));
-		await axios.post("/user-management/api/auth/logout");
+		await axios.post("/api/v1/user/logout");
 	}
 
 	const { mutate, isPending } = useMutation({

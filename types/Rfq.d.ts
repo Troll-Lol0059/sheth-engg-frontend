@@ -171,6 +171,65 @@ type TechnicalOffer = {
 	updatedAt: string;
 };
 
+// ── Commercial Offer (versioned) ──
+
+type CommercialOfferChangeRequest = {
+	_id: string;
+	itemCode: string;
+	field: string;
+	currentValue: string;
+	requestedValue: string;
+	notes: string;
+	resolved: boolean;
+};
+
+type CommercialOfferSnapshotItem = {
+	serialNumber: string;
+	itemCode: string;
+	itemName: string;
+	material: string;
+	quantity: number;
+	sellingPrice: number;
+	hsnCode: string;
+	gstPercent: number;
+	totalBeforeGst: number;
+	gstAmount: number;
+	totalWithGst: number;
+};
+
+type CommercialOfferSnapshot = {
+	prNumber: string;
+	companyName: string;
+	location: string;
+	ownerName: string;
+	deliveryWeeks: number;
+	items: CommercialOfferSnapshotItem[];
+	grandTotalBeforeGst: number;
+	grandGstAmount: number;
+	grandTotalWithGst: number;
+};
+
+type CommercialOfferStatus = "DRAFT" | "SUBMITTED" | "UNDER_REVIEW" | "REVISION_REQUESTED" | "APPROVED" | "SUPERSEDED";
+
+type CommercialOffer = {
+	_id: string;
+	rfq: string;
+	version: number;
+	status: CommercialOfferStatus;
+	snapshot: CommercialOfferSnapshot;
+	pdfUrl: string;
+	excelUrl: string;
+	changeRequests: CommercialOfferChangeRequest[];
+	reviewRemarks: string;
+	generatedBy?: { _id: string; name: string; email: string };
+	submittedAt?: string;
+	reviewedAt?: string;
+	approvedBy?: string;
+	approvedAt?: string;
+	createdAt: string;
+	updatedAt: string;
+};
+
 type ParsedItem = {
 	serialNumber?: string;
 	itemCode: string;

@@ -25,7 +25,7 @@ const Navbar = ({ menuItemsData, sessionData }: NavbarProps) => {
 
 	async function onLogout() {
 		setOnLogoutToast(toast.loading("Loading...", { description: "Please wait while we logout you!" }));
-		await axios.post("/user-management/api/auth/logout");
+		await axios.post("/api/v1/user/logout");
 	}
 
 	const { mutate, isPending } = useMutation({
