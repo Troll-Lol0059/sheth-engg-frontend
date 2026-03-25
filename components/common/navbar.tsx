@@ -14,12 +14,11 @@ import { NavigationMenu, NavigationMenuItem, NavigationMenuList } from "@compone
 
 type NavbarProps = {
 	menuItemsData: MenuItem[];
-	sessionData: AuthSession;
 };
 
-const Navbar = ({ menuItemsData, sessionData }: NavbarProps) => {
+const Navbar = ({ menuItemsData }: NavbarProps) => {
 	const router = useRouter();
-	const { setSession } = useSession();
+	const { session, setSession } = useSession();
 	const [onLogoutToast, setOnLogoutToast] = useState<string | number>();
 	const [openSidebarSheet, setOpenSidebarSheet] = useState<boolean>(false);
 
@@ -32,7 +31,7 @@ const Navbar = ({ menuItemsData, sessionData }: NavbarProps) => {
 		mutationFn: onLogout,
 		onSuccess: () => {
 			toast.success("Success!", { id: onLogoutToast, description: "You've successfully logged out!" });
-			router.replace(`${process.env.NEXT_PUBLIC_USER_MANAGEMENT_URL}/auth/login`);
+			router.replace("/auth/login");
 			setSession(null);
 		},
 		onError: (error: unknown) => {
@@ -51,7 +50,7 @@ const Navbar = ({ menuItemsData, sessionData }: NavbarProps) => {
 				<NavigationMenu>
 					<NavigationMenuList>
 						<NavigationMenuItem>
-							<p className="xs:block hidden">{`Hi ${sessionData?.name}`}</p>
+							<p className="xs:block hidden">{`Hi ${session?.name ?? "User"}`}</p>
 						</NavigationMenuItem>
 						<NavigationMenuItem>
 							{/* <Notifications openNotificationsDialog={openNotificationsDialog} pushNotifications={notifications} setOpenNotificationsDialog={setOpenNotificationsDialog}>
@@ -66,8 +65,8 @@ const Navbar = ({ menuItemsData, sessionData }: NavbarProps) => {
 						</NavigationMenuItem>
 						<NavigationMenuItem>
 							<Avatar>
-								<AvatarImage alt="profile" className="object-cover" src={"https://github.com/shadcn.png"} />
-								<AvatarFallback>{"JD"}</AvatarFallback>
+								{session?.avatarUrl && <AvatarImage alt="profile" className="object-cover" src={session.avatarUrl} />}
+								<AvatarFallback>{session?.name?.charAt(0)?.toUpperCase() ?? "U"}</AvatarFallback>
 							</Avatar>
 						</NavigationMenuItem>
 					</NavigationMenuList>

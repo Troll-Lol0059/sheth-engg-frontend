@@ -29,17 +29,17 @@ const ForgotPasswordForm = () => {
 	});
 
 	const onSend = async (values: z.infer<typeof ForgotPasswordSchema>) => {
-		setOnSendToast(toast.loading("Loading...", { description: "Please wait while we send the OTP!" }));
+		setOnSendToast(toast.loading("Loading...", { description: "Please wait while we process your request!" }));
 		const { email } = values;
-		const response = await axios.post("/otp/request-otp", { email });
-		return { ...values, message: response?.data?.message };
+		const response = await axios.post("/api/v1/user/forgot-password", { email });
+		return { email, message: response?.data?.message };
 	};
 
 	const { mutate, isPending } = useMutation({
 		mutationFn: onSend,
 		onSuccess: data => {
 			const { email, message } = data;
-			toast.success("Success!", { id: onSendToast, description: message ?? "OTP successfully sent to your email!" });
+			toast.success("Success!", { id: onSendToast, description: message ?? "OTP sent to your email!" });
 			router.push(`/auth/verify?email=${encodeURIComponent(email)}&type=FORGOT_PASSWORD`);
 		},
 		onError: (error: unknown) => {
@@ -51,7 +51,7 @@ const ForgotPasswordForm = () => {
 
 	return (
 		<Form {...form}>
-			<form className="w-1/2 flex flex-col items-center justify-center gap-4" onSubmit={form.handleSubmit(values => mutate(values))}>
+			<form className="flex w-1/2 flex-col items-center justify-center gap-4" onSubmit={form.handleSubmit(values => mutate(values))}>
 				<FormField
 					control={form.control}
 					name="email"

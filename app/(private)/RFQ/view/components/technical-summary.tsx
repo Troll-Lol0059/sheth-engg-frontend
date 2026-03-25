@@ -13,29 +13,7 @@ import { Separator } from "@components/ui/separator";
 import { Textarea } from "@components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@components/ui/select";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@components/ui/form";
-import {
-	Wrench,
-	Pencil,
-	Save,
-	X,
-	Plus,
-	Trash2,
-	Search,
-	ChevronLeft,
-	ChevronRight,
-	Download,
-	FileSpreadsheet,
-	Loader2,
-	History,
-	Send,
-	CheckCircle2,
-	AlertCircle,
-	Clock,
-	FileText,
-	ChevronDown,
-	ChevronUp,
-	Check,
-} from "lucide-react";
+import { Wrench, Pencil, Save, X, Plus, Trash2, Search, ChevronLeft, ChevronRight, Download, FileSpreadsheet, Loader2, History, Send, CheckCircle2, AlertCircle, Clock, FileText, ChevronDown, ChevronUp, Check, GitCompareArrows } from "lucide-react";
 import { LineItemSchema, BomSchema } from "@schemas/rfq";
 import type { LineItemFormValues, BomFormValues } from "@schemas/rfq";
 
@@ -72,13 +50,7 @@ const TechnicalSummary = ({ items, rfqId }: TechnicalSummaryProps) => {
 	const filtered = useMemo(() => {
 		if (!search.trim()) return items;
 		const q = search.toLowerCase();
-		return items.filter(
-			li =>
-				(li.serialNumber ?? "").toLowerCase().includes(q) ||
-				(li.item?.itemName ?? "").toLowerCase().includes(q) ||
-				(li.item?.itemCode ?? "").toLowerCase().includes(q) ||
-				(li.item?.itemDesc ?? "").toLowerCase().includes(q)
-		);
+		return items.filter(li => (li.serialNumber ?? "").toLowerCase().includes(q) || (li.item?.itemName ?? "").toLowerCase().includes(q) || (li.item?.itemCode ?? "").toLowerCase().includes(q) || (li.item?.itemDesc ?? "").toLowerCase().includes(q));
 	}, [items, search]);
 
 	const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
@@ -92,7 +64,7 @@ const TechnicalSummary = ({ items, rfqId }: TechnicalSummaryProps) => {
 					<CardTitle className="text-lg">Technical Summary</CardTitle>
 				</CardHeader>
 				<CardContent>
-					<p className="text-sm text-muted-foreground">No line items found.</p>
+					<p className="text-muted-foreground text-sm">No line items found.</p>
 				</CardContent>
 			</Card>
 		);
@@ -105,7 +77,7 @@ const TechnicalSummary = ({ items, rfqId }: TechnicalSummaryProps) => {
 
 			{/* Search */}
 			<div className="relative">
-				<Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+				<Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
 				<Input
 					className="pl-9"
 					onChange={e => {
@@ -117,16 +89,12 @@ const TechnicalSummary = ({ items, rfqId }: TechnicalSummaryProps) => {
 				/>
 			</div>
 
-			{paged.length === 0 ? (
-				<p className="py-4 text-center text-sm text-muted-foreground">No items match your search.</p>
-			) : (
-				paged.map(lineItem => <TechItemCard key={lineItem._id} lineItem={lineItem} rfqId={rfqId} />)
-			)}
+			{paged.length === 0 ? <p className="text-muted-foreground py-4 text-center text-sm">No items match your search.</p> : paged.map(lineItem => <TechItemCard key={lineItem._id} lineItem={lineItem} rfqId={rfqId} />)}
 
 			{/* Pagination */}
 			{filtered.length > ITEMS_PER_PAGE && (
 				<div className="flex items-center justify-between rounded-lg border px-4 py-2">
-					<span className="text-sm text-muted-foreground">
+					<span className="text-muted-foreground text-sm">
 						Showing {safePage * ITEMS_PER_PAGE + 1}–{Math.min((safePage + 1) * ITEMS_PER_PAGE, filtered.length)} of {filtered.length}
 					</span>
 					<div className="flex items-center gap-2">
@@ -152,6 +120,105 @@ const TechnicalSummary = ({ items, rfqId }: TechnicalSummaryProps) => {
 // TECH OFFER VERSION PANEL
 // ══════════════════════════════════════════════════════
 
+// ══════════════════════════════════════════════════════
+// TECH OFFER DIFF COMPONENT
+// ══════════════════════════════════════════════════════
+
+interface TechOfferDiffProps {
+	offerA: TechnicalOffer;
+	offerB: TechnicalOffer;
+}
+
+const TechOfferDiff = ({ offerA, offerB }: TechOfferDiffProps) => {
+	// offerA is older, offerB is newer (by version number)
+	const [older, newer] = offerA.version < offerB.version ? [offerA, offerB] : [offerB, offerA];
+
+	// Build a map of items by itemCode for comparison
+	const olderItems = new Map(older.snapshot.items.map(i => [i.itemCode, i]));
+	const newerItems = new Map(newer.snapshot.items.map(i => [i.itemCode, i]));
+	const allCodes = [...new Set([...olderItems.keys(), ...newerItems.keys()])];
+
+	const diffFields = (a: Record<string, unknown>, b: Record<string, unknown>, fields: string[]) => {
+		return fields.filter(f => JSON.stringify(a[f]) !== JSON.stringify(b[f]));
+	};
+
+	const ITEM_FIELDS = ["material", "grade", "quantity", "remarks", "itemName", "itemDesc", "hardness", "drawingNumber", "bom"];
+
+	const formatDiffValue = (field: string, value: unknown): string => {
+		if (value === null || value === undefined || value === "") return "—";
+		if (field === "hardness" && Array.isArray(value)) {
+			if (value.length === 0) return "—";
+			return value.map((h: { hardnessType?: string; value?: string; measurement?: string }) => `${h.hardnessType}: ${h.value} ${h.measurement}`).join(", ");
+		}
+		if (field === "bom" && Array.isArray(value)) {
+			if (value.length === 0) return "—";
+			return value.map((b: { quantity?: number; partName?: string }) => `${b.quantity} ${b.partName}`).join(" + ");
+		}
+		return String(value);
+	};
+
+	return (
+		<div className="bg-muted/20 mt-3 rounded-lg border p-4">
+			<div className="mb-3 flex items-center justify-between">
+				<h5 className="text-sm font-semibold">
+					Version Comparison: v{older.version} &rarr; v{newer.version}
+				</h5>
+			</div>
+			{allCodes.length === 0 ? (
+				<p className="text-muted-foreground text-sm">No items to compare.</p>
+			) : (
+				<div className="space-y-2">
+					{allCodes
+						.map(code => {
+							const oldItem = olderItems.get(code);
+							const newItem = newerItems.get(code);
+
+							if (!oldItem) {
+								return (
+									<div key={code} className="rounded-md border border-green-200 bg-green-50 p-2 text-sm">
+										<span className="font-medium text-green-700">+ Added:</span> {code} &mdash; {newItem?.itemName}
+									</div>
+								);
+							}
+							if (!newItem) {
+								return (
+									<div key={code} className="rounded-md border border-red-200 bg-red-50 p-2 text-sm">
+										<span className="font-medium text-red-700">&minus; Removed:</span> {code} &mdash; {oldItem.itemName}
+									</div>
+								);
+							}
+
+							const changed = diffFields(oldItem as unknown as Record<string, unknown>, newItem as unknown as Record<string, unknown>, ITEM_FIELDS);
+							if (changed.length === 0) return null;
+
+							return (
+								<div key={code} className="rounded-md border border-amber-200 bg-amber-50 p-2 text-sm">
+									<span className="font-medium">{code}</span> &mdash; {newItem.itemName}
+									<div className="mt-1 space-y-1">
+										{changed.map(field => (
+											<div key={field} className="ml-4 text-xs">
+												<span className="text-muted-foreground">{field}:</span> <span className="text-red-600 line-through">{formatDiffValue(field, (oldItem as unknown as Record<string, unknown>)[field])}</span>
+												{" \u2192 "}
+												<span className="font-medium text-green-700">{formatDiffValue(field, (newItem as unknown as Record<string, unknown>)[field])}</span>
+											</div>
+										))}
+									</div>
+								</div>
+							);
+						})
+						.filter(Boolean)}
+					{allCodes.every(code => {
+						const o = olderItems.get(code);
+						const n = newerItems.get(code);
+						if (!o || !n) return false;
+						return diffFields(o as unknown as Record<string, unknown>, n as unknown as Record<string, unknown>, ITEM_FIELDS).length === 0;
+					}) && <p className="text-muted-foreground text-sm">No differences found between these versions.</p>}
+				</div>
+			)}
+		</div>
+	);
+};
+
 interface TechOfferPanelProps {
 	rfqId: string;
 }
@@ -164,9 +231,7 @@ const TechOfferPanel = ({ rfqId }: TechOfferPanelProps) => {
 		const setter = format === "pdf" ? setDownloadingPdf : setDownloadingExcel;
 		setter(true);
 		try {
-			const url = offerId
-				? `/api/v1/technical-offer/${rfqId}/${format}?offerId=${offerId}`
-				: `/api/v1/technical-offer/${rfqId}/${format}`;
+			const url = offerId ? `/api/v1/technical-offer/${rfqId}/${format}?offerId=${offerId}` : `/api/v1/technical-offer/${rfqId}/${format}`;
 			const response = await axios.get(url, { responseType: "blob" });
 			const blob = new Blob([response.data]);
 			const blobUrl = window.URL.createObjectURL(blob);
@@ -191,6 +256,16 @@ const TechOfferPanel = ({ rfqId }: TechOfferPanelProps) => {
 	const [reviewRemarks, setReviewRemarks] = useState("");
 	const [approvedBy, setApprovedBy] = useState("");
 	const [changeRequests, setChangeRequests] = useState<{ itemCode: string; field: string; currentValue: string; requestedValue: string; notes: string }[]>([]);
+	const [diffVersions, setDiffVersions] = useState<[string | null, string | null]>([null, null]);
+
+	const toggleDiff = (offerId: string) => {
+		setDiffVersions(prev => {
+			if (prev[0] === offerId) return [null, prev[1]];
+			if (prev[1] === offerId) return [prev[0], null];
+			if (!prev[0]) return [offerId, prev[1]];
+			return [prev[0], offerId];
+		});
+	};
 
 	// Fetch version history
 	const { data: offers = [], isLoading } = useQuery<TechnicalOffer[]>({
@@ -297,10 +372,10 @@ const TechOfferPanel = ({ rfqId }: TechOfferPanelProps) => {
 								<Badge variant={STATUS_CONFIG[activeOffer.status].variant} className="ml-2 text-xs">
 									{STATUS_CONFIG[activeOffer.status].label}
 								</Badge>
-								<span className="text-sm font-normal text-muted-foreground">v{activeOffer.version}</span>
+								<span className="text-muted-foreground text-sm font-normal">v{activeOffer.version}</span>
 							</>
 						)}
-						{!activeOffer && offers.length === 0 && <span className="text-sm font-normal text-muted-foreground">No versions yet</span>}
+						{!activeOffer && offers.length === 0 && <span className="text-muted-foreground text-sm font-normal">No versions yet</span>}
 					</div>
 					<div className="flex items-center gap-2">
 						{activeOffer?.status === "DRAFT" && (
@@ -338,9 +413,9 @@ const TechOfferPanel = ({ rfqId }: TechOfferPanelProps) => {
 			{/* Active offer change requests */}
 			{activeOffer?.status === "REVISION_REQUESTED" && activeOffer.changeRequests.length > 0 && (
 				<CardContent className="pt-0">
-					<div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3">
-						<h5 className="mb-2 text-sm font-semibold text-destructive">Change Requests</h5>
-						{activeOffer.reviewRemarks && <p className="mb-3 text-sm text-muted-foreground italic">&quot;{activeOffer.reviewRemarks}&quot;</p>}
+					<div className="border-destructive/30 bg-destructive/5 rounded-lg border p-3">
+						<h5 className="text-destructive mb-2 text-sm font-semibold">Change Requests</h5>
+						{activeOffer.reviewRemarks && <p className="text-muted-foreground mb-3 text-sm italic">&quot;{activeOffer.reviewRemarks}&quot;</p>}
 						<div className="space-y-2">
 							{activeOffer.changeRequests.map(cr => (
 								<div key={cr._id} className={`flex items-start gap-3 rounded-md border p-2 text-sm ${cr.resolved ? "border-green-200 bg-green-50" : "bg-white"}`}>
@@ -349,7 +424,7 @@ const TechOfferPanel = ({ rfqId }: TechOfferPanelProps) => {
 										<div className="mt-1 text-xs">
 											<span className="text-red-600 line-through">{cr.currentValue}</span> → <span className="font-medium text-green-700">{cr.requestedValue}</span>
 										</div>
-										{cr.notes && <p className="mt-1 text-xs text-muted-foreground">{cr.notes}</p>}
+										{cr.notes && <p className="text-muted-foreground mt-1 text-xs">{cr.notes}</p>}
 									</div>
 									{!cr.resolved ? (
 										<Button className="h-7 shrink-0" onClick={() => resolveChangeReq({ offerId: activeOffer._id, crId: cr._id })} size="sm" variant="outline">
@@ -364,9 +439,7 @@ const TechOfferPanel = ({ rfqId }: TechOfferPanelProps) => {
 								</div>
 							))}
 						</div>
-						{activeOffer.changeRequests.every(cr => cr.resolved) && (
-							<p className="mt-3 text-sm text-green-700">All changes resolved. You can now generate a new version.</p>
-						)}
+						{activeOffer.changeRequests.every(cr => cr.resolved) && <p className="mt-3 text-sm text-green-700">All changes resolved. You can now generate a new version.</p>}
 					</div>
 				</CardContent>
 			)}
@@ -374,7 +447,7 @@ const TechOfferPanel = ({ rfqId }: TechOfferPanelProps) => {
 			{/* Review form */}
 			{reviewingOffer && (
 				<CardContent className="pt-0">
-					<div className="rounded-lg border bg-muted/30 p-4">
+					<div className="bg-muted/30 rounded-lg border p-4">
 						<h5 className="mb-3 text-sm font-semibold">Review Technical Offer</h5>
 						<div className="mb-3 flex gap-3">
 							<Button onClick={() => setReviewAction("approve")} size="sm" variant={reviewAction === "approve" ? "default" : "outline"}>
@@ -408,36 +481,36 @@ const TechOfferPanel = ({ rfqId }: TechOfferPanelProps) => {
 										Add
 									</Button>
 								</div>
-								{changeRequests.length === 0 && <p className="text-sm text-muted-foreground">No change requests added. Add specific changes the client requested.</p>}
+								{changeRequests.length === 0 && <p className="text-muted-foreground text-sm">No change requests added. Add specific changes the client requested.</p>}
 								<div className="space-y-3">
 									{changeRequests.map((cr, idx) => (
 										<div className="rounded-md border bg-white p-3" key={idx}>
 											<div className="mb-2 flex items-center justify-between">
 												<span className="text-xs font-medium">Change #{idx + 1}</span>
 												<Button className="h-6 w-6" onClick={() => removeChangeRequest(idx)} size="icon" type="button" variant="ghost">
-													<Trash2 className="h-3 w-3 text-destructive" />
+													<Trash2 className="text-destructive h-3 w-3" />
 												</Button>
 											</div>
 											<div className="grid grid-cols-2 gap-2">
 												<div>
-													<label className="mb-1 block text-[10px] text-muted-foreground">Item Code</label>
+													<label className="text-muted-foreground mb-1 block text-[10px]">Item Code</label>
 													<Input className="h-8 text-sm" onChange={e => updateChangeRequest(idx, "itemCode", e.target.value)} value={cr.itemCode} />
 												</div>
 												<div>
-													<label className="mb-1 block text-[10px] text-muted-foreground">Field</label>
+													<label className="text-muted-foreground mb-1 block text-[10px]">Field</label>
 													<Input className="h-8 text-sm" onChange={e => updateChangeRequest(idx, "field", e.target.value)} placeholder="e.g. material" value={cr.field} />
 												</div>
 												<div>
-													<label className="mb-1 block text-[10px] text-muted-foreground">Current Value</label>
+													<label className="text-muted-foreground mb-1 block text-[10px]">Current Value</label>
 													<Input className="h-8 text-sm" onChange={e => updateChangeRequest(idx, "currentValue", e.target.value)} value={cr.currentValue} />
 												</div>
 												<div>
-													<label className="mb-1 block text-[10px] text-muted-foreground">Requested Value</label>
+													<label className="text-muted-foreground mb-1 block text-[10px]">Requested Value</label>
 													<Input className="h-8 text-sm" onChange={e => updateChangeRequest(idx, "requestedValue", e.target.value)} value={cr.requestedValue} />
 												</div>
 											</div>
 											<div className="mt-2">
-												<label className="mb-1 block text-[10px] text-muted-foreground">Notes</label>
+												<label className="text-muted-foreground mb-1 block text-[10px]">Notes</label>
 												<Input className="h-8 text-sm" onChange={e => updateChangeRequest(idx, "notes", e.target.value)} placeholder="Optional notes" value={cr.notes} />
 											</div>
 										</div>
@@ -470,12 +543,12 @@ const TechOfferPanel = ({ rfqId }: TechOfferPanelProps) => {
 			{showHistory && (
 				<CardContent className="pt-0">
 					{isLoading ? (
-						<div className="flex items-center gap-2 text-sm text-muted-foreground">
+						<div className="text-muted-foreground flex items-center gap-2 text-sm">
 							<Loader2 className="h-4 w-4 animate-spin" />
 							Loading history...
 						</div>
 					) : offers.length === 0 ? (
-						<p className="text-sm text-muted-foreground">No versions generated yet.</p>
+						<p className="text-muted-foreground text-sm">No versions generated yet.</p>
 					) : (
 						<div className="space-y-2">
 							{offers.map(offer => {
@@ -484,7 +557,7 @@ const TechOfferPanel = ({ rfqId }: TechOfferPanelProps) => {
 								return (
 									<div className={`flex items-center justify-between rounded-lg border p-3 ${offer.status === "APPROVED" ? "border-green-200 bg-green-50/50" : ""}`} key={offer._id}>
 										<div className="flex items-center gap-3">
-											<StatusIcon className="h-4 w-4 text-muted-foreground" />
+											<StatusIcon className="text-muted-foreground h-4 w-4" />
 											<div>
 												<div className="flex items-center gap-2">
 													<span className="text-sm font-medium">v{offer.version}</span>
@@ -492,14 +565,12 @@ const TechOfferPanel = ({ rfqId }: TechOfferPanelProps) => {
 														{config.label}
 													</Badge>
 												</div>
-												<p className="text-xs text-muted-foreground">
+												<p className="text-muted-foreground text-xs">
 													{new Date(offer.createdAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
 													{offer.snapshot.items.length > 0 && ` — ${offer.snapshot.items.length} items`}
 												</p>
 												{offer.approvedBy && <p className="text-xs text-green-700">Approved by: {offer.approvedBy}</p>}
-												{offer.reviewRemarks && offer.status === "REVISION_REQUESTED" && (
-													<p className="mt-1 text-xs text-destructive italic">&quot;{offer.reviewRemarks}&quot;</p>
-												)}
+												{offer.reviewRemarks && offer.status === "REVISION_REQUESTED" && <p className="text-destructive mt-1 text-xs italic">&quot;{offer.reviewRemarks}&quot;</p>}
 											</div>
 										</div>
 										<div className="flex items-center gap-1">
@@ -509,10 +580,27 @@ const TechOfferPanel = ({ rfqId }: TechOfferPanelProps) => {
 											<Button disabled={downloadingExcel} onClick={() => handleDownload("excel", offer._id)} size="sm" title="Download Excel" variant="ghost">
 												<FileSpreadsheet className="h-3 w-3" />
 											</Button>
+											<Button
+												onClick={() => toggleDiff(offer._id)}
+												size="sm"
+												title="Compare versions"
+												variant={diffVersions.includes(offer._id) ? "default" : "ghost"}
+												className={diffVersions.includes(offer._id) ? "h-8 w-8" : ""}
+											>
+												<GitCompareArrows className="h-3 w-3" />
+											</Button>
 										</div>
 									</div>
 								);
 							})}
+							{diffVersions[0] &&
+								diffVersions[1] &&
+								(() => {
+									const a = offers.find(o => o._id === diffVersions[0]);
+									const b = offers.find(o => o._id === diffVersions[1]);
+									if (a && b) return <TechOfferDiff offerA={a} offerB={b} />;
+									return null;
+								})()}
 						</div>
 					)}
 				</CardContent>
@@ -580,7 +668,11 @@ const TechItemCard = ({ lineItem, rfqId }: TechItemCardProps) => {
 		},
 	});
 
-	const { fields: hardnessFields, append: appendHardness, remove: removeHardness } = useFieldArray({
+	const {
+		fields: hardnessFields,
+		append: appendHardness,
+		remove: removeHardness,
+	} = useFieldArray({
 		control: lineItemForm.control,
 		name: "itemTechSpecs.hardness",
 	});
@@ -623,7 +715,11 @@ const TechItemCard = ({ lineItem, rfqId }: TechItemCardProps) => {
 		},
 	});
 
-	const { fields: bomFields, append: appendBom, remove: removeBom } = useFieldArray({
+	const {
+		fields: bomFields,
+		append: appendBom,
+		remove: removeBom,
+	} = useFieldArray({
 		control: bomForm.control,
 		name: "bom",
 	});
@@ -715,7 +811,7 @@ const TechItemCard = ({ lineItem, rfqId }: TechItemCardProps) => {
 					<Badge variant="outline" className="ml-1 text-xs">
 						{item?.itemType || "UNIT"}
 					</Badge>
-					<span className="ml-auto flex items-center gap-2 text-sm font-normal text-muted-foreground">
+					<span className="text-muted-foreground ml-auto flex items-center gap-2 text-sm font-normal">
 						{item?.itemCode}
 						{!isEditing ? (
 							<Button onClick={() => setIsEditing(true)} size="sm" variant="outline">
@@ -801,24 +897,24 @@ const BomReadOnly = ({ bom }: { bom: BomEntry[] }) => (
 	<div className="space-y-3">
 		<h4 className="text-sm font-semibold">BOM Parts ({bom.length})</h4>
 		{bom.length === 0 ? (
-			<p className="text-sm text-muted-foreground">No BOM entries.</p>
+			<p className="text-muted-foreground text-sm">No BOM entries.</p>
 		) : (
 			<>
 				<div className="overflow-x-auto">
 					<table className="w-full text-sm">
 						<thead>
-							<tr className="border-b text-left text-muted-foreground">
-								<th className="pb-2 pr-3 font-medium">#</th>
-								<th className="pb-2 pr-3 font-medium">Part Name</th>
-								<th className="pb-2 pr-3 font-medium">Material</th>
-								<th className="pb-2 pr-3 font-medium">Qty</th>
-								<th className="pb-2 pr-3 font-medium">Dia (mm)</th>
-								<th className="pb-2 pr-3 font-medium">Length (mm)</th>
-								<th className="pb-2 pr-3 font-medium">Weight (kg)</th>
-								<th className="pb-2 pr-3 font-medium">Density</th>
-								<th className="pb-2 pr-3 font-medium">Grade</th>
-								<th className="pb-2 pr-3 font-medium">Make</th>
-								<th className="pb-2 pr-3 font-medium">Remarks</th>
+							<tr className="text-muted-foreground border-b text-left">
+								<th className="pr-3 pb-2 font-medium">#</th>
+								<th className="pr-3 pb-2 font-medium">Part Name</th>
+								<th className="pr-3 pb-2 font-medium">Material</th>
+								<th className="pr-3 pb-2 font-medium">Qty</th>
+								<th className="pr-3 pb-2 font-medium">Dia (mm)</th>
+								<th className="pr-3 pb-2 font-medium">Length (mm)</th>
+								<th className="pr-3 pb-2 font-medium">Weight (kg)</th>
+								<th className="pr-3 pb-2 font-medium">Density</th>
+								<th className="pr-3 pb-2 font-medium">Grade</th>
+								<th className="pr-3 pb-2 font-medium">Make</th>
+								<th className="pr-3 pb-2 font-medium">Remarks</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -848,7 +944,7 @@ const BomReadOnly = ({ bom }: { bom: BomEntry[] }) => (
 								part.hardness &&
 								part.hardness.length > 0 && (
 									<div key={part._id || pIdx} className="rounded-lg border p-3">
-										<p className="mb-1 text-xs font-medium text-muted-foreground">{part.partName}</p>
+										<p className="text-muted-foreground mb-1 text-xs font-medium">{part.partName}</p>
 										<div className="flex flex-wrap gap-2">
 											{part.hardness.map((h, hIdx) => (
 												<Badge key={h._id || hIdx} variant="secondary" className="text-xs">
@@ -976,7 +1072,7 @@ const TechSpecsEditForm = ({ lineItemForm, hardnessFields, appendHardness, remov
 			</Button>
 		</div>
 		{hardnessFields.length === 0 ? (
-			<p className="mb-4 text-sm text-muted-foreground">No hardness entries.</p>
+			<p className="text-muted-foreground mb-4 text-sm">No hardness entries.</p>
 		) : (
 			<div className="mb-4 space-y-3">
 				{hardnessFields.map((hField, i) => (
@@ -1043,7 +1139,7 @@ const TechSpecsEditForm = ({ lineItemForm, hardnessFields, appendHardness, remov
 							)}
 						/>
 						<Button className="mb-0.5" onClick={() => removeHardness(i)} size="icon" type="button" variant="ghost">
-							<Trash2 className="h-4 w-4 text-destructive" />
+							<Trash2 className="text-destructive h-4 w-4" />
 						</Button>
 					</div>
 				))}
@@ -1080,9 +1176,7 @@ const BomEditForm = ({ bomForm, bomFields, appendBom, removeBom, calcBomWeight, 
 			<h4 className="text-sm font-semibold">Bill of Materials (BOM)</h4>
 			<div className="flex gap-2">
 				<Button
-					onClick={() =>
-						appendBom({ partName: "", partDescription: "", material: "", quantity: 1, diameter: "", length: "", weight: "", density: "7.85", grade: "", make: "", remarks: "", hardness: [] })
-					}
+					onClick={() => appendBom({ partName: "", partDescription: "", material: "", quantity: 1, diameter: "", length: "", weight: "", density: "7.85", grade: "", make: "", remarks: "", hardness: [] })}
 					size="sm"
 					type="button"
 					variant="outline"
@@ -1097,20 +1191,20 @@ const BomEditForm = ({ bomForm, bomFields, appendBom, removeBom, calcBomWeight, 
 			</div>
 		</div>
 		{bomFields.length === 0 ? (
-			<p className="text-sm text-muted-foreground">No BOM entries. Click &quot;Add Part&quot; to define sub-parts.</p>
+			<p className="text-muted-foreground text-sm">No BOM entries. Click &quot;Add Part&quot; to define sub-parts.</p>
 		) : (
 			<div className="space-y-4">
 				{bomFields.map((bomField, i) => {
 					const watchedHardness = bomForm.watch(`bom.${i}.hardness`) ?? [];
 					return (
-						<div className="rounded-lg border bg-muted/20 p-4" key={bomField.id}>
+						<div className="bg-muted/20 rounded-lg border p-4" key={bomField.id}>
 							<div className="mb-3 flex items-center justify-between">
 								<span className="text-sm font-semibold">
 									Part {i + 1}
 									{bomForm.watch(`bom.${i}.partName`) ? ` — ${bomForm.watch(`bom.${i}.partName`)}` : ""}
 								</span>
 								<Button className="h-7 w-7" onClick={() => removeBom(i)} size="icon" type="button" variant="ghost">
-									<Trash2 className="h-4 w-4 text-destructive" />
+									<Trash2 className="text-destructive h-4 w-4" />
 								</Button>
 							</div>
 							{/* Row 1: Basic info */}
@@ -1272,7 +1366,7 @@ const BomEditForm = ({ bomForm, bomFields, appendBom, removeBom, calcBomWeight, 
 							</div>
 							{/* Row 4: Hardness */}
 							<div className="flex items-center justify-between">
-								<span className="text-xs font-medium text-muted-foreground">Hardness</span>
+								<span className="text-muted-foreground text-xs font-medium">Hardness</span>
 								<Button className="h-7" onClick={() => addBomHardness(i)} size="sm" type="button" variant="outline">
 									<Plus className="mr-1 h-3 w-3" />
 									Add
@@ -1344,7 +1438,7 @@ const BomEditForm = ({ bomForm, bomFields, appendBom, removeBom, calcBomWeight, 
 												)}
 											/>
 											<Button className="mb-0.5" onClick={() => removeBomHardness(i, hIdx)} size="icon" type="button" variant="ghost">
-												<Trash2 className="h-4 w-4 text-destructive" />
+												<Trash2 className="text-destructive h-4 w-4" />
 											</Button>
 										</div>
 									))}
@@ -1360,7 +1454,7 @@ const BomEditForm = ({ bomForm, bomFields, appendBom, removeBom, calcBomWeight, 
 
 const ReadOnlyField = ({ label, value }: { label: string; value?: string }) => (
 	<div className="flex flex-col gap-1">
-		<span className="text-xs text-muted-foreground">{label}</span>
+		<span className="text-muted-foreground text-xs">{label}</span>
 		<span className="text-sm font-medium">{value || "—"}</span>
 	</div>
 );

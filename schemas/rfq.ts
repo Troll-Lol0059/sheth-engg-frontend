@@ -108,7 +108,11 @@ const CostingPartSchema = z.object({
 	quantity: z.coerce.number().min(1),
 	supplyType: z.enum(["MANUAL", "COMPLETE_SUPPLY"]),
 	// Manual fields
+	shapeType: z.enum(["ROUND", "SQUARE", "FLAT", "HEX", "PIPE", "SHEET"]).default("ROUND"),
 	diameter: z.coerce.number().min(0).default(0),
+	width: z.coerce.number().min(0).default(0),
+	thickness: z.coerce.number().min(0).default(0),
+	innerDiameter: z.coerce.number().min(0).default(0),
 	length: z.coerce.number().min(0).default(0),
 	density: z.coerce.number().min(0).default(7.85),
 	materialRate: z.coerce.number().min(0).default(0),

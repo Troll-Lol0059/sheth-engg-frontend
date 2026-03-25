@@ -6,4 +6,6 @@ import CostingDialog from "./costing-dialog";
 import CostingSummary from "./costing-summary";
 import MarkQuotedDialog from "./mark-quoted-dialog";
 
-export { RfqInfoCard, RfqItemsSection, BulkDrawingUpload, RfqViewContent, CostingDialog, CostingSummary, MarkQuotedDialog };
+import ItemHistoryDialog from "./item-history-dialog";
+
+export { RfqInfoCard, RfqItemsSection, BulkDrawingUpload, RfqViewContent, CostingDialog, CostingSummary, MarkQuotedDialog, ItemHistoryDialog };

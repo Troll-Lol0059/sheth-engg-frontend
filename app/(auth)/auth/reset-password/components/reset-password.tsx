@@ -6,7 +6,7 @@ import { AxiosError } from "axios";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { Input } from "@components/ui/input";
-import { encrypt } from "@config/encryption";
+
 import { Button } from "@components/ui/button";
 import { toast } from "@components/ui/toaster";
 import { useMutation } from "@tanstack/react-query";
@@ -17,11 +17,10 @@ import { ResetPasswordSchema } from "@/schemas";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@components/ui/form";
 
 type ResetPasswordFormProps = {
-	email: string;
-	otp: string;
+	token: string;
 };
 
-const ResetPasswordForm = ({ email, otp }: ResetPasswordFormProps) => {
+const ResetPasswordForm = ({ token }: ResetPasswordFormProps) => {
 	const router = useRouter();
 	const [onResetToast, setOnResetToast] = useState<string | number>();
 	const { inputIcon: pwdInputIcon, inputType: pwdInputType } = usePasswordToggle();
@@ -40,13 +39,11 @@ const ResetPasswordForm = ({ email, otp }: ResetPasswordFormProps) => {
 
 	const onReset = async (values: z.infer<typeof ResetPasswordSchema>) => {
 		setOnResetToast(toast.loading("Loading...", { description: "Please wait while we reset your password!" }));
-		const password = encrypt(values?.newPassword);
 		const payload = {
-			email,
-			otp,
-			newPassword: password,
+			token,
+			newPassword: values?.newPassword,
 		};
-		const response = await axios.post("/user/reset-password", payload);
+		const response = await axios.post("/api/v1/user/reset-password", payload);
 		return response?.data;
 	};
 

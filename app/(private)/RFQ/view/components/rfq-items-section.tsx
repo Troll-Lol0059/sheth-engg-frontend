@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@components/ui/form";
 import { Pencil, Save, X, Package, ChevronDown, ChevronUp, Upload, FileText, ExternalLink, Loader2, Plus, Trash2, Calculator } from "lucide-react";
 import CostingDialog from "./costing-dialog";
+import ItemHistoryDialog from "./item-history-dialog";
 import { ItemMasterSchema, LineItemSchema, BomSchema } from "@/schemas/rfq";
 import type { ItemMasterFormValues, LineItemFormValues, BomFormValues } from "@/schemas/rfq";
 
@@ -47,7 +48,7 @@ const RfqItemsSection = ({ items, rfqId }: RfqItemsSectionProps) => {
 					<CardTitle className="text-lg">Line Items</CardTitle>
 				</CardHeader>
 				<CardContent>
-					<p className="text-sm text-muted-foreground">No line items found for this RFQ.</p>
+					<p className="text-muted-foreground text-sm">No line items found for this RFQ.</p>
 				</CardContent>
 			</Card>
 		);
@@ -63,14 +64,7 @@ const RfqItemsSection = ({ items, rfqId }: RfqItemsSectionProps) => {
 			</CardHeader>
 			<CardContent className="space-y-3">
 				{items.map((lineItem, idx) => (
-					<ItemCard
-						expanded={expandedItem === lineItem._id}
-						idx={idx}
-						key={lineItem._id}
-						lineItem={lineItem}
-						onToggle={() => setExpandedItem(expandedItem === lineItem._id ? null : lineItem._id)}
-						rfqId={rfqId}
-					/>
+					<ItemCard expanded={expandedItem === lineItem._id} idx={idx} key={lineItem._id} lineItem={lineItem} onToggle={() => setExpandedItem(expandedItem === lineItem._id ? null : lineItem._id)} rfqId={rfqId} />
 				))}
 			</CardContent>
 		</Card>
@@ -158,7 +152,11 @@ const ItemCard = ({ lineItem, idx, expanded, onToggle, rfqId }: ItemCardProps) =
 		},
 	});
 
-	const { fields: hardnessFields, append: appendHardness, remove: removeHardness } = useFieldArray({
+	const {
+		fields: hardnessFields,
+		append: appendHardness,
+		remove: removeHardness,
+	} = useFieldArray({
 		control: lineItemForm.control,
 		name: "itemTechSpecs.hardness",
 	});
@@ -212,7 +210,11 @@ const ItemCard = ({ lineItem, idx, expanded, onToggle, rfqId }: ItemCardProps) =
 		}
 	};
 
-	const { fields: bomFields, append: appendBom, remove: removeBom } = useFieldArray({
+	const {
+		fields: bomFields,
+		append: appendBom,
+		remove: removeBom,
+	} = useFieldArray({
 		control: bomForm.control,
 		name: "bom",
 	});
@@ -314,16 +316,16 @@ const ItemCard = ({ lineItem, idx, expanded, onToggle, rfqId }: ItemCardProps) =
 	};
 
 	return (
-		<div className="rounded-lg border bg-card">
+		<div className="bg-card rounded-lg border">
 			{/* Collapsed header */}
-			<button className="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-muted/50" onClick={onToggle} type="button">
+			<button className="hover:bg-muted/50 flex w-full items-center justify-between px-4 py-3 text-left" onClick={onToggle} type="button">
 				<div className="flex items-center gap-4">
 					<Badge className="flex h-7 min-w-7 items-center justify-center rounded-full px-1.5" variant="outline">
 						{lineItem.serialNumber || idx + 1}
 					</Badge>
 					<div>
 						<p className="text-sm font-semibold">{lineItem.item?.itemName || "Unknown Item"}</p>
-						<p className="text-xs text-muted-foreground">
+						<p className="text-muted-foreground text-xs">
 							{lineItem.item?.itemCode || "—"} &middot; Qty: {lineItem.quantity} &middot; {lineItem.item?.itemType || "—"}
 							{lineItem.drawingUrl ? " &middot; Drawing attached" : ""}
 						</p>
@@ -332,7 +334,7 @@ const ItemCard = ({ lineItem, idx, expanded, onToggle, rfqId }: ItemCardProps) =
 				<div className="flex items-center gap-2">
 					{(lineItem.commercialSpecs?.totalCost > 0 || lineItem.commercialSpecs?.sellingPrice > 0) && <Calculator className="h-4 w-4 text-blue-600" />}
 					{lineItem.drawingUrl && <FileText className="h-4 w-4 text-green-600" />}
-					{expanded ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+					{expanded ? <ChevronUp className="text-muted-foreground h-4 w-4" /> : <ChevronDown className="text-muted-foreground h-4 w-4" />}
 				</div>
 			</button>
 
@@ -343,6 +345,7 @@ const ItemCard = ({ lineItem, idx, expanded, onToggle, rfqId }: ItemCardProps) =
 						<h4 className="text-sm font-semibold">Item Details</h4>
 						{!isEditing ? (
 							<div className="flex gap-2">
+								<ItemHistoryDialog itemCode={lineItem.item?.itemCode ?? ""} itemName={lineItem.item?.itemName ?? "Unknown"} />
 								<CostingDialog lineItem={lineItem} rfqId={rfqId} />
 								<Button onClick={() => setIsEditing(true)} size="sm" variant="outline">
 									<Pencil className="mr-2 h-3 w-3" />
@@ -421,12 +424,7 @@ const ItemCard = ({ lineItem, idx, expanded, onToggle, rfqId }: ItemCardProps) =
 
 					{/* Drawing section */}
 					<Separator className="my-4" />
-					<DrawingSection
-						drawingUrl={lineItem.drawingUrl}
-						fileInputRef={fileInputRef}
-						handleFileChange={handleFileChange}
-						isUploading={isUploading}
-					/>
+					<DrawingSection drawingUrl={lineItem.drawingUrl} fileInputRef={fileInputRef} handleFileChange={handleFileChange} isUploading={isUploading} />
 
 					{isEditing ? (
 						<>
@@ -543,7 +541,7 @@ const ItemCard = ({ lineItem, idx, expanded, onToggle, rfqId }: ItemCardProps) =
 									</Button>
 								</div>
 								{hardnessFields.length === 0 ? (
-									<p className="mb-4 text-sm text-muted-foreground">No hardness entries. Click &quot;Add Hardness&quot; to add one.</p>
+									<p className="text-muted-foreground mb-4 text-sm">No hardness entries. Click &quot;Add Hardness&quot; to add one.</p>
 								) : (
 									<div className="mb-4 space-y-3">
 										{hardnessFields.map((hField, i) => (
@@ -610,7 +608,7 @@ const ItemCard = ({ lineItem, idx, expanded, onToggle, rfqId }: ItemCardProps) =
 													)}
 												/>
 												<Button className="mb-0.5" onClick={() => removeHardness(i)} size="icon" type="button" variant="ghost">
-													<Trash2 className="h-4 w-4 text-destructive" />
+													<Trash2 className="text-destructive h-4 w-4" />
 												</Button>
 											</div>
 										))}
@@ -625,7 +623,12 @@ const ItemCard = ({ lineItem, idx, expanded, onToggle, rfqId }: ItemCardProps) =
 									<div className="mb-3 flex items-center justify-between">
 										<h5 className="text-sm font-semibold">Bill of Materials (BOM)</h5>
 										<div className="flex gap-2">
-											<Button onClick={() => appendBom({ partName: "", partDescription: "", material: "", quantity: 1, diameter: "", length: "", weight: "", density: "7.85", grade: "", make: "", remarks: "", hardness: [] })} size="sm" type="button" variant="outline">
+											<Button
+												onClick={() => appendBom({ partName: "", partDescription: "", material: "", quantity: 1, diameter: "", length: "", weight: "", density: "7.85", grade: "", make: "", remarks: "", hardness: [] })}
+												size="sm"
+												type="button"
+												variant="outline"
+											>
 												<Plus className="mr-2 h-3 w-3" />
 												Add Part
 											</Button>
@@ -636,17 +639,20 @@ const ItemCard = ({ lineItem, idx, expanded, onToggle, rfqId }: ItemCardProps) =
 										</div>
 									</div>
 									{bomFields.length === 0 ? (
-										<p className="mb-4 text-sm text-muted-foreground">No BOM entries. Click &quot;Add Part&quot; to define sub-parts.</p>
+										<p className="text-muted-foreground mb-4 text-sm">No BOM entries. Click &quot;Add Part&quot; to define sub-parts.</p>
 									) : (
 										<div className="mb-4 space-y-4">
 											{bomFields.map((bomField, i) => {
 												const watchedHardness = bomForm.watch(`bom.${i}.hardness`) ?? [];
 												return (
-													<div className="rounded-lg border bg-muted/20 p-4" key={bomField.id}>
+													<div className="bg-muted/20 rounded-lg border p-4" key={bomField.id}>
 														<div className="mb-3 flex items-center justify-between">
-															<span className="text-sm font-semibold">Part {i + 1}{bomForm.watch(`bom.${i}.partName`) ? ` — ${bomForm.watch(`bom.${i}.partName`)}` : ""}</span>
+															<span className="text-sm font-semibold">
+																Part {i + 1}
+																{bomForm.watch(`bom.${i}.partName`) ? ` — ${bomForm.watch(`bom.${i}.partName`)}` : ""}
+															</span>
 															<Button className="h-7 w-7" onClick={() => removeBom(i)} size="icon" type="button" variant="ghost">
-																<Trash2 className="h-4 w-4 text-destructive" />
+																<Trash2 className="text-destructive h-4 w-4" />
 															</Button>
 														</div>
 														{/* Row 1: Basic info */}
@@ -808,7 +814,7 @@ const ItemCard = ({ lineItem, idx, expanded, onToggle, rfqId }: ItemCardProps) =
 														</div>
 														{/* Row 4: Hardness */}
 														<div className="flex items-center justify-between">
-															<span className="text-xs font-medium text-muted-foreground">Hardness</span>
+															<span className="text-muted-foreground text-xs font-medium">Hardness</span>
 															<Button className="h-7" onClick={() => addBomHardness(i)} size="sm" type="button" variant="outline">
 																<Plus className="mr-1 h-3 w-3" />
 																Add
@@ -832,7 +838,9 @@ const ItemCard = ({ lineItem, idx, expanded, onToggle, rfqId }: ItemCardProps) =
 																						</FormControl>
 																						<SelectContent>
 																							{hardnessTypes.map(ht => (
-																								<SelectItem key={ht._id} value={ht.name}>{ht.name}</SelectItem>
+																								<SelectItem key={ht._id} value={ht.name}>
+																									{ht.name}
+																								</SelectItem>
 																							))}
 																						</SelectContent>
 																					</Select>
@@ -867,7 +875,9 @@ const ItemCard = ({ lineItem, idx, expanded, onToggle, rfqId }: ItemCardProps) =
 																						</FormControl>
 																						<SelectContent>
 																							{hardnessMeasurements.map(hm => (
-																								<SelectItem key={hm._id} value={hm.name}>{hm.name}</SelectItem>
+																								<SelectItem key={hm._id} value={hm.name}>
+																									{hm.name}
+																								</SelectItem>
 																							))}
 																						</SelectContent>
 																					</Select>
@@ -876,7 +886,7 @@ const ItemCard = ({ lineItem, idx, expanded, onToggle, rfqId }: ItemCardProps) =
 																			)}
 																		/>
 																		<Button className="mb-0.5" onClick={() => removeBomHardness(i, hIdx)} size="icon" type="button" variant="ghost">
-																			<Trash2 className="h-4 w-4 text-destructive" />
+																			<Trash2 className="text-destructive h-4 w-4" />
 																		</Button>
 																	</div>
 																))}
@@ -889,7 +899,6 @@ const ItemCard = ({ lineItem, idx, expanded, onToggle, rfqId }: ItemCardProps) =
 									)}
 								</Form>
 							)}
-
 						</>
 					) : (
 						<>
@@ -917,7 +926,7 @@ const ItemCard = ({ lineItem, idx, expanded, onToggle, rfqId }: ItemCardProps) =
 											<h5 className="mb-3 text-sm font-semibold">Hardness</h5>
 											<div className="mb-4 space-y-2">
 												{lineItem.itemTechSpecs.hardness.map((h, i) => (
-													<div className="grid grid-cols-3 gap-3 rounded-md border bg-muted/30 px-3 py-2" key={h._id || i}>
+													<div className="bg-muted/30 grid grid-cols-3 gap-3 rounded-md border px-3 py-2" key={h._id || i}>
 														<ReadOnlyField label="Hardness Type" value={h.hardnessType} />
 														<ReadOnlyField label="Value" value={h.value} />
 														<ReadOnlyField label="Measurement" value={h.measurement} />
@@ -936,8 +945,10 @@ const ItemCard = ({ lineItem, idx, expanded, onToggle, rfqId }: ItemCardProps) =
 									<h5 className="mb-3 text-sm font-semibold">Bill of Materials (BOM)</h5>
 									<div className="mb-4 space-y-3">
 										{lineItem.item.bom.map((entry, i) => (
-											<div className="rounded-lg border bg-muted/20 p-4" key={entry._id || i}>
-												<p className="mb-2 text-sm font-semibold">Part {i + 1} — {entry.partName || "Unnamed"}</p>
+											<div className="bg-muted/20 rounded-lg border p-4" key={entry._id || i}>
+												<p className="mb-2 text-sm font-semibold">
+													Part {i + 1} — {entry.partName || "Unnamed"}
+												</p>
 												<div className="mb-2 grid grid-cols-2 gap-3 sm:grid-cols-4">
 													<ReadOnlyField label="Part Name" value={entry.partName} />
 													<ReadOnlyField label="Description" value={entry.partDescription} />
@@ -959,10 +970,10 @@ const ItemCard = ({ lineItem, idx, expanded, onToggle, rfqId }: ItemCardProps) =
 												)}
 												{entry.hardness && entry.hardness.length > 0 && (
 													<div className="mt-2">
-														<span className="text-xs font-medium text-muted-foreground">Hardness</span>
+														<span className="text-muted-foreground text-xs font-medium">Hardness</span>
 														<div className="mt-1 space-y-1">
 															{entry.hardness.map((h, hIdx) => (
-																<div className="grid grid-cols-3 gap-3 rounded-md border bg-background px-3 py-2" key={h._id || hIdx}>
+																<div className="bg-background grid grid-cols-3 gap-3 rounded-md border px-3 py-2" key={h._id || hIdx}>
 																	<ReadOnlyField label="Type" value={h.hardnessType} />
 																	<ReadOnlyField label="Value" value={h.value} />
 																	<ReadOnlyField label="Measurement" value={h.measurement} />
@@ -976,7 +987,6 @@ const ItemCard = ({ lineItem, idx, expanded, onToggle, rfqId }: ItemCardProps) =
 									</div>
 								</>
 							)}
-
 						</>
 					)}
 				</div>
@@ -998,15 +1008,11 @@ const DrawingSection = ({ drawingUrl, fileInputRef, handleFileChange, isUploadin
 			<h5 className="mb-3 text-sm font-semibold">Drawing</h5>
 			{drawingUrl ? (
 				<div className="flex items-center gap-3">
-					<div className="flex items-center gap-2 rounded-md border bg-muted/50 px-3 py-2">
+					<div className="bg-muted/50 flex items-center gap-2 rounded-md border px-3 py-2">
 						<FileText className="h-4 w-4 text-red-600" />
 						<span className="text-sm font-medium">Drawing PDF</span>
 					</div>
-					<Button
-						onClick={() => window.open(drawingUrl, "_blank", "noopener,noreferrer")}
-						size="sm"
-						variant="outline"
-					>
+					<Button onClick={() => window.open(drawingUrl, "_blank", "noopener,noreferrer")} size="sm" variant="outline">
 						<ExternalLink className="mr-2 h-3 w-3" />
 						Open Drawing
 					</Button>
@@ -1018,7 +1024,7 @@ const DrawingSection = ({ drawingUrl, fileInputRef, handleFileChange, isUploadin
 				</div>
 			) : (
 				<div className="flex items-center gap-3">
-					<span className="text-sm text-muted-foreground">No drawing uploaded</span>
+					<span className="text-muted-foreground text-sm">No drawing uploaded</span>
 					<input accept=".pdf,application/pdf" className="hidden" onChange={handleFileChange} ref={fileInputRef} type="file" />
 					<Button disabled={isUploading} onClick={() => fileInputRef.current?.click()} size="sm" variant="outline">
 						{isUploading ? <Loader2 className="mr-2 h-3 w-3 animate-spin" /> : <Upload className="mr-2 h-3 w-3" />}
@@ -1032,7 +1038,7 @@ const DrawingSection = ({ drawingUrl, fileInputRef, handleFileChange, isUploadin
 
 const ReadOnlyField = ({ label, value }: { label: string; value?: string }) => (
 	<div className="flex flex-col gap-1">
-		<span className="text-xs text-muted-foreground">{label}</span>
+		<span className="text-muted-foreground text-xs">{label}</span>
 		<span className="text-sm font-medium">{value || "—"}</span>
 	</div>
 );

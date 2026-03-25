@@ -1,0 +1,117 @@
+export const menuItems: MenuItem[] = [
+	{
+		uuid: "1",
+		name: "RFQ",
+		src: "/RFQ",
+		icon: "ClipboardList",
+		submenus: [
+			{
+				uuid: "1-0",
+				name: "All RFQs",
+				src: "/RFQ/all",
+				icon: "List",
+			},
+			{
+				uuid: "1-1",
+				name: "Pending RFQ",
+				src: "/RFQ/pending",
+				icon: "Clock",
+			},
+			{
+				uuid: "1-2",
+				name: "Quoted RFQ",
+				src: "/RFQ/quoted",
+				icon: "FileCheck",
+			},
+			{
+				uuid: "1-3",
+				name: "Revised RFQ",
+				src: "/RFQ/revised",
+				icon: "RefreshCw",
+			},
+			{
+				uuid: "1-4",
+				name: "Regret RFQ",
+				src: "/RFQ/regret",
+				icon: "XCircle",
+			},
+		],
+		allowedRoles: [],
+	},
+	{
+		uuid: "2",
+		name: "Master",
+		src: "/master",
+		icon: "SlidersHorizontal",
+		submenus: [
+			{
+				uuid: "2-1",
+				name: "Raw Material Types",
+				src: "/master/raw-material-types",
+				icon: "Shapes",
+			},
+			{
+				uuid: "2-2",
+				name: "Labour Process Types",
+				src: "/master/labour-process-types",
+				icon: "Hammer",
+			},
+			{
+				uuid: "2-3",
+				name: "Hardness Types",
+				src: "/master/hardness-types",
+				icon: "Shield",
+			},
+			{
+				uuid: "2-4",
+				name: "Hardness Measurements",
+				src: "/master/hardness-measurements",
+				icon: "Ruler",
+			},
+		],
+		allowedRoles: [],
+	},
+	{
+		uuid: "3",
+		name: "Party Master",
+		src: "/party",
+		icon: "Contact",
+		allowedRoles: [],
+	},
+	{
+		uuid: "4",
+		name: "PO Register",
+		src: "/po-register",
+		icon: "FileSpreadsheet",
+		allowedRoles: [],
+	},
+	{
+		uuid: "5",
+		name: "Client Master",
+		src: "/client-master",
+		icon: "Building",
+		allowedRoles: [],
+	},
+	{
+		uuid: "7",
+		name: "Profile",
+		src: "/profile",
+		icon: "User",
+		allowedRoles: [],
+	},
+	{
+		uuid: "6",
+		name: "Settings",
+		src: "/settings",
+		icon: "Settings",
+		submenus: [
+			{
+				uuid: "6-1",
+				name: "Company Profile",
+				src: "/settings/company-profile",
+				icon: "building",
+			},
+		],
+		allowedRoles: [],
+	},
+];

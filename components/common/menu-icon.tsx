@@ -1,22 +1,29 @@
 import {
 	BriefcaseBusiness,
+	Building,
 	Building2,
 	CircleDot,
 	CircleHelp,
 	CircleUserRound,
+	ClipboardList,
 	ClipboardPenLine,
 	Clock,
 	Cog,
 	Contact,
 	FileCheck,
+	FileSpreadsheet,
 	Gem,
+	Hammer,
 	LandPlot,
 	LayoutDashboard,
+	List,
 	NotebookPen,
 	Package,
 	RefreshCw,
 	Route,
 	Ruler,
+	Shapes,
+	Shield,
 	SlidersHorizontal,
 	UserCheck,
 	UserRoundCheck,
@@ -80,6 +87,20 @@ const MenuIcon = ({ icon }: MenuIconProps) => {
 			return <Gem />;
 		case "Ruler":
 			return <Ruler />;
+		case "List":
+			return <List />;
+		case "FileSpreadsheet":
+			return <FileSpreadsheet />;
+		case "Building":
+			return <Building />;
+		case "ClipboardList":
+			return <ClipboardList />;
+		case "Hammer":
+			return <Hammer />;
+		case "Shapes":
+			return <Shapes />;
+		case "Shield":
+			return <Shield />;
 		default:
 			return <CircleDot />;
 	}

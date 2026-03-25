@@ -43,7 +43,7 @@ const LoginForm = () => {
 
 	const { mutate, isPending } = useMutation({
 		mutationFn: onLogin,
-		onSuccess: async (data) => {
+		onSuccess: async data => {
 			// --- 2FA flow commented out ---
 			// if (data?.data?.is2faEnabled === true) {
 			// 	toast.info("2FA Enabled!", {
@@ -121,7 +121,7 @@ const LoginForm = () => {
 						)}
 					/>
 				</div>
-				<Link className="w-full text-end text-xs font-medium text-primary md:text-sm" href="/auth/forgot-password">
+				<Link className="text-primary w-full text-end text-xs font-medium md:text-sm" href="/auth/forgot-password">
 					Forgot Password?
 				</Link>
 				<div className="flex w-full flex-col items-center justify-center gap-6">
@@ -129,12 +129,6 @@ const LoginForm = () => {
 						<LogIn />
 						Login
 					</Button>
-					<span className="text-xs md:text-sm">
-						{`Don't have an account? `}
-						<Link className="text-xs font-medium text-primary md:text-sm" href="/auth/register">
-							REGISTER NOW
-						</Link>
-					</span>
 				</div>
 			</form>
 		</Form>

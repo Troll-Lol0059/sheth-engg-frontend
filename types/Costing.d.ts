@@ -12,7 +12,11 @@ type CostingPart = {
 	partName: string;
 	quantity: number;
 	supplyType: "MANUAL" | "COMPLETE_SUPPLY";
+	shapeType: "ROUND" | "SQUARE" | "FLAT" | "HEX" | "PIPE" | "SHEET";
 	diameter: number;
+	width: number;
+	thickness: number;
+	innerDiameter: number;
 	length: number;
 	density: number;
 	weight: number;

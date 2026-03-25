@@ -35,7 +35,7 @@ const Sidebar = ({ menuItems }: SidebarProps) => {
 		mutationFn: onLogout,
 		onSuccess: () => {
 			toast.success("Success!", { id: onLogoutToast, description: "You've successfully logged out!" });
-			router.push(`${process.env.NEXT_PUBLIC_VCOSMOS_USER_MANAGEMENT_URL}/auth/login`);
+			router.replace("/auth/login");
 			setSession(null);
 		},
 		onError: (error: unknown) => {
