@@ -4,6 +4,8 @@ import { getRefreshToken } from "@lib/getRefreshToken";
 import { AxiosError } from "axios";
 import { HardnessTypeTable, AddHardnessTypeDialog } from "./components";
 import { hardnessTypeColumns } from "./components/hardness-type-columns";
+import ModuleHelp from "@components/common/module-help";
+import { hardnessTypesHelp } from "@data/helpData";
 
 const HardnessTypesPage = async () => {
 	const { data, totalPages, totalCount } = await fetchHardnessTypes();
@@ -15,7 +17,10 @@ const HardnessTypesPage = async () => {
 					<h1 className="text-2xl font-bold">Hardness Types</h1>
 					<p className="text-sm text-muted-foreground">Manage hardness type definitions</p>
 				</div>
+				<div className="flex gap-2">
+				<ModuleHelp description="Guide to managing hardness types" sections={hardnessTypesHelp} title="Hardness Types — Help" />
 				<AddHardnessTypeDialog />
+			</div>
 			</div>
 			<HardnessTypeTable columns={hardnessTypeColumns} initialData={data} totalElements={totalCount} totalPages={totalPages} />
 		</section>

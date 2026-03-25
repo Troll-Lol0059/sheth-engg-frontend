@@ -68,6 +68,7 @@ export const CompanyProfileSchema = z.object({
 		.optional()
 		.default("")
 		.refine(val => !val || validator.isAlpha(val, "en-US", { ignore: " -." }), "Only letters, spaces and hyphens allowed!"),
+	contactPersonPhone: z.string().max(20, "Should contain max of 20 characters!").optional().default(""),
 	contactPersonEmail: z
 		.string()
 		.optional()

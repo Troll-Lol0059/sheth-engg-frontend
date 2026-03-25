@@ -8,6 +8,8 @@ import { Badge } from "@components/ui/badge";
 import { Button } from "@components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@components/ui/table";
 import { BarChart3, Loader2 } from "lucide-react";
+import ModuleHelp from "@components/common/module-help";
+import { vendorComparisonHelp } from "@data/helpData";
 
 type ComparisonType = "material" | "labour" | "supply";
 
@@ -34,7 +36,8 @@ const VendorComparisonContent = ({ initialData }: VendorComparisonContentProps) 
 					<BarChart3 className="h-5 w-5" />
 					Vendor Comparison
 				</h1>
-				<div className="flex gap-2">
+				<div className="flex items-center gap-2">
+					<ModuleHelp description="Guide to vendor comparison analysis" sections={vendorComparisonHelp} title="Vendor Comparison — Help" />
 					{(["material", "labour", "supply"] as ComparisonType[]).map(t => (
 						<Button key={t} onClick={() => setType(t)} size="sm" variant={type === t ? "default" : "outline"}>
 							{t === "material" ? "Raw Material" : t === "labour" ? "Labour" : "Complete Supply"}

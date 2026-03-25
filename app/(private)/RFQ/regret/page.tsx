@@ -4,6 +4,8 @@ import { getRefreshToken } from "@lib/getRefreshToken";
 import { AxiosError } from "axios";
 import { RfqTable } from "../components";
 import { regretRfqColumns } from "./components";
+import ModuleHelp from "@components/common/module-help";
+import { rfqRegretHelp } from "@data/helpData";
 
 const RegretRFQPage = async () => {
 	const { data, totalPages, totalCount } = await fetchRegretRfqs();
@@ -15,6 +17,7 @@ const RegretRFQPage = async () => {
 					<h1 className="text-2xl font-bold">Regret RFQ</h1>
 					<p className="text-sm text-muted-foreground">RFQs that were not quoted</p>
 				</div>
+				<ModuleHelp description="Guide to regret RFQs" sections={rfqRegretHelp} title="Regret RFQ — Help" />
 			</div>
 			<RfqTable columns={regretRfqColumns} initialData={data} isRegretFilter={true} totalElements={totalCount} totalPages={totalPages} />
 		</section>

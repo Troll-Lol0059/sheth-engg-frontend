@@ -7,6 +7,8 @@ import axios from "@config/axios";
 import { AxiosError } from "axios";
 import { toast } from "sonner";
 import { User } from "lucide-react";
+import ModuleHelp from "@components/common/module-help";
+import { profileHelp } from "@data/helpData";
 import { UpdateProfileSchema, ChangePasswordSchema, UpdateProfileFormValues, ChangePasswordFormValues } from "@schemas/profile";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@components/ui/form";
 import { Input } from "@components/ui/input";
@@ -107,9 +109,12 @@ const ProfileContent = ({ initialData }: ProfileContentProps) => {
 
 	return (
 		<div className="mx-auto flex w-full max-w-3xl flex-col gap-6 p-6">
-			<div className="flex items-center gap-3">
-				<User className="h-7 w-7" />
-				<h1 className="text-2xl font-semibold">My Profile</h1>
+			<div className="flex items-center justify-between">
+				<div className="flex items-center gap-3">
+					<User className="h-7 w-7" />
+					<h1 className="text-2xl font-semibold">My Profile</h1>
+				</div>
+				<ModuleHelp description="Guide to managing your profile" sections={profileHelp} title="My Profile — Help" />
 			</div>
 
 			{/* Profile Details Card */}

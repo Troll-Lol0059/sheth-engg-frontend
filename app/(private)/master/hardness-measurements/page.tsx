@@ -4,6 +4,8 @@ import { getRefreshToken } from "@lib/getRefreshToken";
 import { AxiosError } from "axios";
 import { HardnessMeasurementTable, AddHardnessMeasurementDialog } from "./components";
 import { hardnessMeasurementColumns } from "./components/hardness-measurement-columns";
+import ModuleHelp from "@components/common/module-help";
+import { hardnessMeasurementsHelp } from "@data/helpData";
 
 const HardnessMeasurementsPage = async () => {
 	const { data, totalPages, totalCount } = await fetchHardnessMeasurements();
@@ -15,7 +17,10 @@ const HardnessMeasurementsPage = async () => {
 					<h1 className="text-2xl font-bold">Hardness Measurements</h1>
 					<p className="text-sm text-muted-foreground">Manage hardness measurement unit definitions</p>
 				</div>
+				<div className="flex gap-2">
+				<ModuleHelp description="Guide to managing hardness measurements" sections={hardnessMeasurementsHelp} title="Hardness Measurements — Help" />
 				<AddHardnessMeasurementDialog />
+			</div>
 			</div>
 			<HardnessMeasurementTable columns={hardnessMeasurementColumns} initialData={data} totalElements={totalCount} totalPages={totalPages} />
 		</section>

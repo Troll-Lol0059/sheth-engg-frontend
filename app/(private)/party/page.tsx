@@ -4,6 +4,8 @@ import { getRefreshToken } from "@lib/getRefreshToken";
 import { AxiosError } from "axios";
 import { PartyTable, AddPartyDialog, ImportExcelDialog } from "./components";
 import { partyColumns } from "./components/party-columns";
+import ModuleHelp from "@components/common/module-help";
+import { partyHelp } from "@data/helpData";
 
 const PartyPage = async () => {
 	const { data, totalPages, totalCount } = await fetchParties();
@@ -16,6 +18,7 @@ const PartyPage = async () => {
 					<p className="text-sm text-muted-foreground">Manage your party records and contacts</p>
 				</div>
 				<div className="flex gap-2">
+					<ModuleHelp description="Guide to managing vendors and suppliers" sections={partyHelp} title="Party Master — Help" />
 					<ImportExcelDialog />
 					<AddPartyDialog />
 				</div>

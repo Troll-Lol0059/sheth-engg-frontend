@@ -4,6 +4,8 @@ import { getRefreshToken } from "@lib/getRefreshToken";
 import { AxiosError } from "axios";
 import { RfqTable } from "../components";
 import { allRfqColumns } from "./components";
+import ModuleHelp from "@components/common/module-help";
+import { rfqAllHelp } from "@data/helpData";
 
 const AllRFQPage = async () => {
 	const { data, totalPages, totalCount } = await fetchAllRfqs();
@@ -15,6 +17,7 @@ const AllRFQPage = async () => {
 					<h1 className="text-2xl font-bold">All RFQs</h1>
 					<p className="text-muted-foreground text-sm">Complete list of all RFQs — pending, quoted, revised, and regret</p>
 				</div>
+				<ModuleHelp description="Guide to viewing all RFQs" sections={rfqAllHelp} title="All RFQs — Help" />
 			</div>
 			<RfqTable columns={allRfqColumns} initialData={data} totalElements={totalCount} totalPages={totalPages} />
 		</section>

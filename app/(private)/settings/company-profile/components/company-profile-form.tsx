@@ -13,6 +13,8 @@ import { Input } from "@components/ui/input";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@components/ui/form";
 import { Badge } from "@components/ui/badge";
 import { Loader2, Building2, Upload, Save, Image } from "lucide-react";
+import ModuleHelp from "@components/common/module-help";
+import { companyProfileHelp } from "@data/helpData";
 
 interface CompanyProfile {
 	_id: string;
@@ -29,6 +31,7 @@ interface CompanyProfile {
 	phone: string;
 	email: string;
 	contactPersonName: string;
+	contactPersonPhone: string;
 	contactPersonEmail: string;
 	logoUrl: string;
 }
@@ -65,6 +68,7 @@ const CompanyProfileForm = ({ initialData }: CompanyProfileFormProps) => {
 			phone: initialData?.phone ?? "",
 			email: initialData?.email ?? "",
 			contactPersonName: initialData?.contactPersonName ?? "",
+			contactPersonPhone: initialData?.contactPersonPhone ?? "",
 			contactPersonEmail: initialData?.contactPersonEmail ?? "",
 		},
 		mode: "onTouched",
@@ -113,12 +117,15 @@ const CompanyProfileForm = ({ initialData }: CompanyProfileFormProps) => {
 
 	return (
 		<div className="mx-auto max-w-3xl space-y-6 p-6">
-			<div className="flex items-center gap-3">
-				<Building2 className="h-6 w-6" />
-				<h1 className="text-2xl font-bold">Company Profile</h1>
-				<Badge variant="outline" className="text-xs">
-					Used in all PDF &amp; Excel templates
-				</Badge>
+			<div className="flex items-center justify-between">
+				<div className="flex items-center gap-3">
+					<Building2 className="h-6 w-6" />
+					<h1 className="text-2xl font-bold">Company Profile</h1>
+					<Badge variant="outline" className="text-xs">
+						Used in all PDF &amp; Excel templates
+					</Badge>
+				</div>
+				<ModuleHelp description="Guide to managing company profile" sections={companyProfileHelp} title="Company Profile — Help" />
 			</div>
 
 			{/* Logo Section */}
@@ -349,7 +356,21 @@ const CompanyProfileForm = ({ initialData }: CompanyProfileFormProps) => {
 
 								<FormField
 									control={form.control}
-									name="contactPersonEmail"
+									name="contactPersonPhone"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Contact Person Phone</FormLabel>
+										<FormControl>
+											<Input placeholder="e.g. +91 98765 43210" {...field} />
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+
+							<FormField
+								control={form.control}
+								name="contactPersonEmail"
 									render={({ field }) => (
 										<FormItem>
 											<FormLabel>Contact Person Email</FormLabel>

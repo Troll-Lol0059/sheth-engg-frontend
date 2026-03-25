@@ -5,6 +5,7 @@ type CostingLabourEntry = {
 	rate: number;
 	rateType: "PER_PIECE" | "PER_KG";
 	cost: number;
+	proofDocumentUrl?: string;
 };
 
 type CostingPart = {
@@ -23,11 +24,13 @@ type CostingPart = {
 	materialRate: number;
 	rawMaterialParty?: string | { _id: string; acName: string };
 	rawMaterialCost: number;
+	rawMaterialProofDocumentUrl?: string;
 	labourEntries: CostingLabourEntry[];
 	totalLabourCost: number;
 	completeSupplyRate: number;
 	completeSupplyParty?: string | { _id: string; acName: string };
 	completeSupplyDate?: string;
+	completeSupplyProofDocumentUrl?: string;
 	costPrice: number;
 	profitMargin: number;
 	profitAmount: number;

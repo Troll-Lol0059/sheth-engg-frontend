@@ -42,11 +42,15 @@ const CostingSummary = ({ rfqId, items }: CostingSummaryProps) => {
 		setter(true);
 		try {
 			const response = await axios.get(`/api/v1/costing/rfq/${rfqId}/sheet/${format}`, { responseType: "blob" });
+			const disposition = response.headers["content-disposition"] ?? "";
+			const starMatch = disposition.match(/filename\*=UTF-8''(.+?)(?:;|$)/);
+			const plainMatch = disposition.match(/filename="?([^";\n]+)"?/);
+			const downloadName = starMatch?.[1] ? decodeURIComponent(starMatch[1]) : plainMatch?.[1] ?? `Costing_Sheet.${format === "pdf" ? "pdf" : "xlsx"}`;
 			const blob = new Blob([response.data]);
 			const blobUrl = window.URL.createObjectURL(blob);
 			const a = document.createElement("a");
 			a.href = blobUrl;
-			a.download = `Costing_Sheet.${format === "pdf" ? "pdf" : "xlsx"}`;
+			a.download = downloadName;
 			document.body.appendChild(a);
 			a.click();
 			a.remove();
@@ -468,11 +472,15 @@ const CommercialOfferPanel = ({ rfqId }: CommercialOfferPanelProps) => {
 		try {
 			const url = offerId ? `/api/v1/commercial-offer/${rfqId}/${format}?offerId=${offerId}` : `/api/v1/commercial-offer/${rfqId}/${format}`;
 			const response = await axios.get(url, { responseType: "blob" });
+			const disposition = response.headers["content-disposition"] ?? "";
+			const starMatch = disposition.match(/filename\*=UTF-8''(.+?)(?:;|$)/);
+			const plainMatch = disposition.match(/filename="?([^";\n]+)"?/);
+			const downloadName = starMatch?.[1] ? decodeURIComponent(starMatch[1]) : plainMatch?.[1] ?? `Commercial_Offer.${format === "pdf" ? "pdf" : "xlsx"}`;
 			const blob = new Blob([response.data]);
 			const blobUrl = window.URL.createObjectURL(blob);
 			const a = document.createElement("a");
 			a.href = blobUrl;
-			a.download = `Commercial_Offer.${format === "pdf" ? "pdf" : "xlsx"}`;
+			a.download = downloadName;
 			document.body.appendChild(a);
 			a.click();
 			a.remove();

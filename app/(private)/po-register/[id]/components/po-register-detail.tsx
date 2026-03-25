@@ -7,6 +7,8 @@ import { Card, CardContent } from "@components/ui/card";
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@components/ui/table";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
+import ModuleHelp from "@components/common/module-help";
+import { poDetailHelp } from "@data/helpData";
 
 const formatCurrency = (value: number) => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 2 }).format(value);
 
@@ -43,13 +45,16 @@ const PORegisterDetail = ({ poId, initialData }: { poId: string; initialData: PO
 
 	return (
 		<div className="flex flex-col gap-6 p-6">
-			{/* Back Button */}
-			<Link href="/po-register">
-				<Button variant="ghost" size="sm">
-					<ArrowLeft className="mr-2 h-4 w-4" />
-					Back to PO Register
-				</Button>
-			</Link>
+			{/* Back Button & Help */}
+			<div className="flex items-center justify-between">
+				<Link href="/po-register">
+					<Button variant="ghost" size="sm">
+						<ArrowLeft className="mr-2 h-4 w-4" />
+						Back to PO Register
+					</Button>
+				</Link>
+				<ModuleHelp description="Guide to PO details and line items" sections={poDetailHelp} title="PO Detail — Help" />
+			</div>
 
 			{/* Header Card */}
 			<Card>

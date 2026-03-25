@@ -4,6 +4,8 @@ import { getRefreshToken } from "@lib/getRefreshToken";
 import { AxiosError } from "axios";
 import { RfqTable } from "../components";
 import { revisedRfqColumns } from "./components";
+import ModuleHelp from "@components/common/module-help";
+import { rfqRevisedHelp } from "@data/helpData";
 
 const RevisedRFQPage = async () => {
 	const { data, totalPages, totalCount } = await fetchRevisedRfqs();
@@ -15,6 +17,7 @@ const RevisedRFQPage = async () => {
 					<h1 className="text-2xl font-bold">Revised RFQ</h1>
 					<p className="text-sm text-muted-foreground">RFQs that have been revised after quoting</p>
 				</div>
+				<ModuleHelp description="Guide to revised quotations" sections={rfqRevisedHelp} title="Revised RFQ — Help" />
 			</div>
 			<RfqTable columns={revisedRfqColumns} initialData={data} isQuotedFilter={true} isRevisedFilter={true} totalElements={totalCount} totalPages={totalPages} />
 		</section>

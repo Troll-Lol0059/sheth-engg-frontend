@@ -15,8 +15,55 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@components/ui/dialog";
 import { DatePicker } from "@components/ui/date-picker";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@components/ui/form";
-import { Calculator, Plus, Trash2, Loader2, ChevronDown, ChevronUp, Truck, Copy, Search, Clock } from "lucide-react";
+import { Calculator, Plus, Trash2, Loader2, ChevronDown, ChevronUp, Truck, Copy, Search, Clock, Upload, FileDown, X } from "lucide-react";
 import { CostingSchema, type CostingFormValues } from "@schemas/rfq";
+
+const ProofDocumentField = ({ url, onUpload, onRemove }: { url: string; onUpload: (newUrl: string) => void; onRemove: () => void }) => {
+	const [uploading, setUploading] = useState(false);
+
+	const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+		const file = e.target.files?.[0];
+		if (!file) return;
+		setUploading(true);
+		try {
+			const formData = new FormData();
+			formData.append("proofDocument", file);
+			const response = await axios.post("/api/v1/costing/proof-document", formData, { headers: { "Content-Type": "multipart/form-data" } });
+			const uploadedUrl = response?.data?.data?.url as string;
+			if (uploadedUrl) {
+				onUpload(uploadedUrl);
+				toast.success("Proof document uploaded");
+			}
+		} catch {
+			toast.error("Failed to upload proof document");
+		} finally {
+			setUploading(false);
+			e.target.value = "";
+		}
+	};
+
+	if (url) {
+		return (
+			<div className="flex items-center gap-1">
+				<a className="text-primary inline-flex items-center gap-1 text-xs hover:underline" href={url} rel="noopener noreferrer" target="_blank">
+					<FileDown className="h-3 w-3" />
+					Proof
+				</a>
+				<button className="text-destructive hover:bg-destructive/10 inline-flex h-5 w-5 items-center justify-center rounded" onClick={onRemove} title="Remove proof" type="button">
+					<X className="h-3 w-3" />
+				</button>
+			</div>
+		);
+	}
+
+	return (
+		<Label className="hover:bg-muted inline-flex cursor-pointer items-center gap-1 rounded border px-2 py-1 text-xs">
+			{uploading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Upload className="h-3 w-3" />}
+			{uploading ? "Uploading..." : "Proof"}
+			<input accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" className="hidden" disabled={uploading} onChange={handleFileChange} type="file" />
+		</Label>
+	);
+};
 
 const RateHistoryPopover = ({ partyId, type }: { partyId: string; type: "material" | "labour" | "supply" }) => {
 	const [open, setOpen] = useState(false);
@@ -109,10 +156,12 @@ const defaultManualPart = (name = "Part", qty = 1): CostingFormValues["parts"][n
 	density: 7.85,
 	materialRate: 0,
 	rawMaterialParty: "",
+	rawMaterialProofDocumentUrl: "",
 	labourEntries: [],
 	completeSupplyRate: 0,
 	completeSupplyParty: "",
 	completeSupplyDate: "",
+	completeSupplyProofDocumentUrl: "",
 	profitMargin: 0,
 });
 
@@ -129,10 +178,12 @@ const defaultSupplyPart = (name = "Part", qty = 1): CostingFormValues["parts"][n
 	density: 7.85,
 	materialRate: 0,
 	rawMaterialParty: "",
+	rawMaterialProofDocumentUrl: "",
 	labourEntries: [],
 	completeSupplyRate: 0,
 	completeSupplyParty: "",
 	completeSupplyDate: "",
+	completeSupplyProofDocumentUrl: "",
 	profitMargin: 0,
 });
 
@@ -254,16 +305,19 @@ const CostingDialog = ({ lineItem, rfqId }: CostingDialogProps) => {
 					density: p.density ?? 7.85,
 					materialRate: p.materialRate ?? 0,
 					rawMaterialParty: typeof p.rawMaterialParty === "object" ? (p.rawMaterialParty?._id ?? "") : (p.rawMaterialParty ?? ""),
+					rawMaterialProofDocumentUrl: p.rawMaterialProofDocumentUrl ?? "",
 					labourEntries: p.labourEntries.map(e => ({
 						labourProcessType: typeof e.labourProcessType === "object" ? e.labourProcessType._id : e.labourProcessType,
 						party: typeof e.party === "object" ? (e.party?._id ?? "") : (e.party ?? ""),
 						rate: e.rate,
 						rateType: e.rateType,
+						proofDocumentUrl: e.proofDocumentUrl ?? "",
 					})),
 					completeSupplyRate: p.completeSupplyRate ?? 0,
 					completeSupplyParty: typeof p.completeSupplyParty === "object" ? (p.completeSupplyParty?._id ?? "") : (p.completeSupplyParty ?? ""),
 					completeSupplyDate: p.completeSupplyDate ? p.completeSupplyDate.split("T")[0] : "",
 					profitMargin: p.profitMargin ?? 0,
+					completeSupplyProofDocumentUrl: p.completeSupplyProofDocumentUrl ?? "",
 				})),
 				packingCost: costing.packingCost ?? 0,
 				shippingCost: costing.shippingCost ?? 0,
@@ -291,15 +345,18 @@ const CostingDialog = ({ lineItem, rfqId }: CostingDialogProps) => {
 					density: p.density,
 					materialRate: p.materialRate,
 					rawMaterialParty: p.rawMaterialParty || undefined,
+					rawMaterialProofDocumentUrl: p.rawMaterialProofDocumentUrl || undefined,
 					labourEntries: p.labourEntries.map(e => ({
 						labourProcessType: e.labourProcessType,
 						party: e.party || undefined,
 						rate: e.rate,
 						rateType: e.rateType,
+						proofDocumentUrl: e.proofDocumentUrl || undefined,
 					})),
 					completeSupplyRate: p.completeSupplyRate,
 					completeSupplyParty: p.completeSupplyParty || undefined,
 					completeSupplyDate: p.completeSupplyDate || undefined,
+					completeSupplyProofDocumentUrl: p.completeSupplyProofDocumentUrl || undefined,
 					profitMargin: p.profitMargin,
 				})),
 				packingCost: formData.packingCost,
@@ -365,7 +422,7 @@ const CostingDialog = ({ lineItem, rfqId }: CostingDialogProps) => {
 
 	const addLabourEntry = (partIdx: number) => {
 		const entries = form.getValues(`parts.${partIdx}.labourEntries`);
-		form.setValue(`parts.${partIdx}.labourEntries`, [...entries, { labourProcessType: "", party: "", rate: 0, rateType: "PER_PIECE" as const }]);
+		form.setValue(`parts.${partIdx}.labourEntries`, [...entries, { labourProcessType: "", party: "", rate: 0, rateType: "PER_PIECE" as const, proofDocumentUrl: "" }]);
 	};
 
 	const removeLabourEntry = (partIdx: number, labourIdx: number) => {
@@ -800,6 +857,10 @@ const CostingDialog = ({ lineItem, rfqId }: CostingDialogProps) => {
 																<Label className="text-xs">Raw Material Cost (₹)</Label>
 																<Input disabled value={calc.rawMaterialCost.toFixed(2)} />
 															</div>
+															<div className="flex flex-col gap-1.5">
+																<Label className="text-xs">Proof Document</Label>
+																<ProofDocumentField onRemove={() => form.setValue(`parts.${pIdx}.rawMaterialProofDocumentUrl`, "")} onUpload={url => form.setValue(`parts.${pIdx}.rawMaterialProofDocumentUrl`, url)} url={part.rawMaterialProofDocumentUrl ?? ""} />
+															</div>
 														</div>
 
 														<Separator className="my-3" />
@@ -817,7 +878,7 @@ const CostingDialog = ({ lineItem, rfqId }: CostingDialogProps) => {
 														) : (
 															<div className="mb-3 space-y-3">
 																{part.labourEntries.map((entry, lIdx) => (
-																	<div className="bg-muted/30 grid grid-cols-2 gap-3 rounded-lg border p-3 sm:grid-cols-5" key={lIdx}>
+																	<div className="bg-muted/30 grid grid-cols-2 gap-3 rounded-lg border p-3 sm:grid-cols-6" key={lIdx}>
 																		<FormField
 																			control={form.control}
 																			name={`parts.${pIdx}.labourEntries.${lIdx}.labourProcessType`}
@@ -911,7 +972,13 @@ const CostingDialog = ({ lineItem, rfqId }: CostingDialogProps) => {
 																				<Trash2 className="h-4 w-4" />
 																			</Button>
 																		</div>
+																	<div className="flex items-end">
+																		<div className="flex flex-col gap-1.5">
+																			<Label className="text-xs">Proof</Label>
+																			<ProofDocumentField onRemove={() => form.setValue(`parts.${pIdx}.labourEntries.${lIdx}.proofDocumentUrl`, "")} onUpload={url => form.setValue(`parts.${pIdx}.labourEntries.${lIdx}.proofDocumentUrl`, url)} url={entry.proofDocumentUrl ?? ""} />
+																		</div>
 																	</div>
+																</div>
 																))}
 															</div>
 														)}
@@ -921,7 +988,7 @@ const CostingDialog = ({ lineItem, rfqId }: CostingDialogProps) => {
 													<>
 														{/* Complete Supply */}
 														<h5 className="text-muted-foreground mb-2 text-xs font-semibold">Vendor Supply Details</h5>
-														<div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+														<div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
 															<FormField
 																control={form.control}
 																name={`parts.${pIdx}.completeSupplyRate`}
@@ -979,6 +1046,10 @@ const CostingDialog = ({ lineItem, rfqId }: CostingDialogProps) => {
 																	</FormItem>
 																)}
 															/>
+															<div className="flex flex-col gap-1.5">
+																<Label className="text-xs">Proof Document</Label>
+																<ProofDocumentField onRemove={() => form.setValue(`parts.${pIdx}.completeSupplyProofDocumentUrl`, "")} onUpload={url => form.setValue(`parts.${pIdx}.completeSupplyProofDocumentUrl`, url)} url={part.completeSupplyProofDocumentUrl ?? ""} />
+															</div>
 														</div>
 													</>
 												)}

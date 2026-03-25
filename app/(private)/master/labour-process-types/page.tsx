@@ -4,6 +4,8 @@ import { getRefreshToken } from "@lib/getRefreshToken";
 import { AxiosError } from "axios";
 import { LabourProcessTypeTable, AddLabourProcessTypeDialog } from "./components";
 import { labourProcessTypeColumns } from "./components/labour-process-type-columns";
+import ModuleHelp from "@components/common/module-help";
+import { labourProcessTypesHelp } from "@data/helpData";
 
 const LabourProcessTypesPage = async () => {
 	const { data, totalPages, totalCount } = await fetchLabourProcessTypes();
@@ -15,7 +17,10 @@ const LabourProcessTypesPage = async () => {
 					<h1 className="text-2xl font-bold">Labour Process Types</h1>
 					<p className="text-sm text-muted-foreground">Manage labour process type definitions</p>
 				</div>
+				<div className="flex gap-2">
+				<ModuleHelp description="Guide to managing labour process types" sections={labourProcessTypesHelp} title="Labour Process Types — Help" />
 				<AddLabourProcessTypeDialog />
+			</div>
 			</div>
 			<LabourProcessTypeTable columns={labourProcessTypeColumns} initialData={data} totalElements={totalCount} totalPages={totalPages} />
 		</section>

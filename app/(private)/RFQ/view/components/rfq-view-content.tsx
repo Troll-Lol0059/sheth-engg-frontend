@@ -12,6 +12,8 @@ import BulkDrawingUpload from "./bulk-drawing-upload";
 import CostingSummary from "./costing-summary";
 import TechnicalSummary from "./technical-summary";
 import MarkQuotedDialog from "./mark-quoted-dialog";
+import ModuleHelp from "@components/common/module-help";
+import { rfqViewHelp } from "@data/helpData";
 
 interface RfqViewContentProps {
 	rfq: Rfq;
@@ -48,7 +50,10 @@ const RfqViewContent = ({ rfq: initialRfq }: RfqViewContentProps) => {
 						</p>
 					</div>
 				</div>
-				<MarkQuotedDialog rfq={rfq} />
+				<div className="flex items-center gap-2">
+					<ModuleHelp description="Complete guide to RFQ details, costing, and offers" sections={rfqViewHelp} title="RFQ Detail — Help" />
+					<MarkQuotedDialog rfq={rfq} />
+				</div>
 			</div>
 
 			<Separator />

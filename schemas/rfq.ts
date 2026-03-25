@@ -101,6 +101,7 @@ const LabourEntrySchema = z.object({
 	party: z.string().optional().default(""),
 	rate: z.coerce.number().min(0),
 	rateType: z.enum(["PER_PIECE", "PER_KG"]),
+	proofDocumentUrl: z.string().optional().default(""),
 });
 
 const CostingPartSchema = z.object({
@@ -117,11 +118,13 @@ const CostingPartSchema = z.object({
 	density: z.coerce.number().min(0).default(7.85),
 	materialRate: z.coerce.number().min(0).default(0),
 	rawMaterialParty: z.string().optional().default(""),
+	rawMaterialProofDocumentUrl: z.string().optional().default(""),
 	labourEntries: z.array(LabourEntrySchema).default([]),
 	// Complete supply fields
 	completeSupplyRate: z.coerce.number().min(0).default(0),
 	completeSupplyParty: z.string().optional().default(""),
 	completeSupplyDate: z.string().optional().default(""),
+	completeSupplyProofDocumentUrl: z.string().optional().default(""),
 	// Common
 	profitMargin: z.coerce.number().min(0).default(0),
 });

@@ -4,6 +4,8 @@ import { getRefreshToken } from "@lib/getRefreshToken";
 import { AxiosError } from "axios";
 import { RawMaterialTypeTable, AddRawMaterialTypeDialog } from "./components";
 import { rawMaterialTypeColumns } from "./components/raw-material-type-columns";
+import ModuleHelp from "@components/common/module-help";
+import { rawMaterialTypesHelp } from "@data/helpData";
 
 const RawMaterialTypesPage = async () => {
 	const { data, totalPages, totalCount } = await fetchRawMaterialTypes();
@@ -15,7 +17,10 @@ const RawMaterialTypesPage = async () => {
 					<h1 className="text-2xl font-bold">Raw Material Types</h1>
 					<p className="text-sm text-muted-foreground">Manage raw material type definitions</p>
 				</div>
+				<div className="flex gap-2">
+				<ModuleHelp description="Guide to managing raw material types" sections={rawMaterialTypesHelp} title="Raw Material Types — Help" />
 				<AddRawMaterialTypeDialog />
+			</div>
 			</div>
 			<RawMaterialTypeTable columns={rawMaterialTypeColumns} initialData={data} totalElements={totalCount} totalPages={totalPages} />
 		</section>

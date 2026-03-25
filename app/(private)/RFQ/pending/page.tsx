@@ -4,6 +4,8 @@ import { getRefreshToken } from "@lib/getRefreshToken";
 import { AxiosError } from "axios";
 import { RfqTable, AddRfqDialog } from "../components";
 import { rfqColumns } from "../components/rfq-columns";
+import ModuleHelp from "@components/common/module-help";
+import { rfqPendingHelp } from "@data/helpData";
 
 const PendingRFQPage = async () => {
 	const { data, totalPages, totalCount } = await fetchPendingRfqs();
@@ -15,7 +17,10 @@ const PendingRFQPage = async () => {
 					<h1 className="text-2xl font-bold">Pending RFQ</h1>
 					<p className="text-sm text-muted-foreground">RFQs that are yet to be quoted</p>
 				</div>
-				<AddRfqDialog />
+				<div className="flex gap-2">
+					<ModuleHelp description="Guide to managing pending quotation requests" sections={rfqPendingHelp} title="Pending RFQ — Help" />
+					<AddRfqDialog />
+				</div>
 			</div>
 			<RfqTable columns={rfqColumns} initialData={data} isQuotedFilter={false} totalElements={totalCount} totalPages={totalPages} />
 		</section>

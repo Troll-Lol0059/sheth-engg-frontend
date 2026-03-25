@@ -233,11 +233,15 @@ const TechOfferPanel = ({ rfqId }: TechOfferPanelProps) => {
 		try {
 			const url = offerId ? `/api/v1/technical-offer/${rfqId}/${format}?offerId=${offerId}` : `/api/v1/technical-offer/${rfqId}/${format}`;
 			const response = await axios.get(url, { responseType: "blob" });
+			const disposition = response.headers["content-disposition"] ?? "";
+			const starMatch = disposition.match(/filename\*=UTF-8''(.+?)(?:;|$)/);
+			const plainMatch = disposition.match(/filename="?([^";\n]+)"?/);
+			const downloadName = starMatch?.[1] ? decodeURIComponent(starMatch[1]) : plainMatch?.[1] ?? `Technical_Offer.${format === "pdf" ? "pdf" : "xlsx"}`;
 			const blob = new Blob([response.data]);
 			const blobUrl = window.URL.createObjectURL(blob);
 			const a = document.createElement("a");
 			a.href = blobUrl;
-			a.download = `Technical_Offer.${format === "pdf" ? "pdf" : "xlsx"}`;
+			a.download = downloadName;
 			document.body.appendChild(a);
 			a.click();
 			a.remove();

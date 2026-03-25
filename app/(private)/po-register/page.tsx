@@ -2,15 +2,20 @@ import axios from "@config/axios";
 import { getToken } from "@lib/getToken";
 import { getRefreshToken } from "@lib/getRefreshToken";
 import PORegisterTable from "./components/po-register-table";
+import ModuleHelp from "@components/common/module-help";
+import { poRegisterHelp } from "@data/helpData";
 
 const PORegisterPage = async () => {
 	const { data, totalPages, totalCount, stats, clients } = await fetchInitialData();
 
 	return (
 		<div className="flex flex-col gap-6 p-6">
-			<div>
-				<h1 className="text-2xl font-bold">PO Register</h1>
-				<p className="text-muted-foreground text-sm">Purchase Order Register — import and view all POs</p>
+			<div className="flex items-center justify-between">
+				<div>
+					<h1 className="text-2xl font-bold">PO Register</h1>
+					<p className="text-muted-foreground text-sm">Purchase Order Register — import and view all POs</p>
+				</div>
+				<ModuleHelp description="Guide to managing purchase orders" sections={poRegisterHelp} title="PO Register — Help" />
 			</div>
 			<PORegisterTable initialData={data} initialTotalPages={totalPages} initialTotalCount={totalCount} initialStats={stats} initialClients={clients} />
 		</div>
