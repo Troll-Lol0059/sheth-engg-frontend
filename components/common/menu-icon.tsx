@@ -22,6 +22,7 @@ import {
 	RefreshCw,
 	Route,
 	Ruler,
+	ScrollText,
 	Shapes,
 	Shield,
 	SlidersHorizontal,
@@ -104,6 +105,8 @@ const MenuIcon = ({ icon }: MenuIconProps) => {
 			return <Shield />;
 		case "UserCog":
 			return <UserCog />;
+		case "ScrollText":
+			return <ScrollText />;
 		default:
 			return <CircleDot />;
 	}
