@@ -98,7 +98,7 @@ const PORegisterTable = ({ initialData, initialTotalPages, initialTotalCount, in
 	const queryClient = useQueryClient();
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
-	const [sorting, setSorting] = useState<SortingState>([]);
+	const [sorting, setSorting] = useState<SortingState>([{ id: "createdAt", desc: true }]);
 	const [filter, setFilter] = useState<string>("");
 	const [globalFilter, setGlobalFilter] = useState<string>(filter);
 	const [companyFilter, setCompanyFilter] = useState<string>("");

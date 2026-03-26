@@ -5,6 +5,7 @@ import { AxiosError } from "axios";
 import useSession from "@store/session";
 import { Menu } from "lucide-react";
 import SidebarSheet from "./sidebar-sheet";
+import NotificationBell from "./notification-bell";
 import { useRouter } from "next/navigation";
 import { Button } from "@components/ui/button";
 import { toast } from "@components/ui/toaster";
@@ -53,15 +54,7 @@ const Navbar = ({ menuItemsData }: NavbarProps) => {
 							<p className="xs:block hidden">{`Hi ${session?.name ?? "User"}`}</p>
 						</NavigationMenuItem>
 						<NavigationMenuItem>
-							{/* <Notifications openNotificationsDialog={openNotificationsDialog} pushNotifications={notifications} setOpenNotificationsDialog={setOpenNotificationsDialog}>
-								<Button size="icon" variant="ghost">
-									<div className="relative flex size-8 items-center justify-center">
-										<span className="sr-only">Open menu</span>
-										<Bell size={20} />
-										{unreadNotificationCount > 0 && <span className="bg-destructive text-destructive-foreground absolute top-0 right-0 rounded-full px-2 text-xs font-medium">{unreadCount}</span>}
-									</div>
-								</Button>
-							</Notifications> */}
+							<NotificationBell />
 						</NavigationMenuItem>
 						<NavigationMenuItem>
 							<Avatar>

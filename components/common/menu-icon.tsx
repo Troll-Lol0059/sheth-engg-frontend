@@ -29,6 +29,7 @@ import {
 	UserRoundCheck,
 	UsersRound,
 	Waypoints,
+	UserCog,
 	Wrench,
 	XCircle,
 } from "lucide-react";
@@ -101,6 +102,8 @@ const MenuIcon = ({ icon }: MenuIconProps) => {
 			return <Shapes />;
 		case "Shield":
 			return <Shield />;
+		case "UserCog":
+			return <UserCog />;
 		default:
 			return <CircleDot />;
 	}

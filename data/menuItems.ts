@@ -96,7 +96,7 @@ export const menuItems: MenuItem[] = [
 		uuid: "8",
 		name: "Staff",
 		src: "/staff",
-		icon: "Users",
+		icon: "UserCog",
 		allowedRoles: [],
 	},
 	{

@@ -713,7 +713,7 @@ const CostingDialog = ({ lineItem, rfqId }: CostingDialogProps) => {
 															</div>
 														</div>
 														{/* Dimension Fields (conditional on shape) */}
-														<div className="mb-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+														<div className="mb-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
 															{/* Diameter — ROUND, HEX, PIPE */}
 															{(part.shapeType === "ROUND" || part.shapeType === "HEX" || part.shapeType === "PIPE") && (
 																<FormField
@@ -792,6 +792,8 @@ const CostingDialog = ({ lineItem, rfqId }: CostingDialogProps) => {
 																	</FormItem>
 																)}
 															/>
+															</div>
+														<div className="mb-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
 															{/* Density */}
 															<FormField
 																control={form.control}
@@ -825,38 +827,41 @@ const CostingDialog = ({ lineItem, rfqId }: CostingDialogProps) => {
 																	</FormItem>
 																)}
 															/>
+															{/* Raw Material Cost */}
+															<div className="flex flex-col gap-1.5">
+																<Label className="text-xs">Raw Material Cost (₹)</Label>
+																<Input disabled value={calc.rawMaterialCost.toFixed(2)} />
+															</div>
 														</div>
-														<div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+														<div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-2">
 															<FormField
 																control={form.control}
 																name={`parts.${pIdx}.rawMaterialParty`}
 																render={({ field: f }) => (
 																	<FormItem>
 																		<FormLabel className="text-xs">Supplier</FormLabel>
-																		<Select onValueChange={val => f.onChange(val === "none" ? "" : val)} value={f.value || "none"}>
-																			<FormControl>
-																				<SelectTrigger>
-																					<SelectValue placeholder="Select supplier" />
-																				</SelectTrigger>
-																			</FormControl>
-																			<SelectContent>
-																				<SelectItem value="none">None</SelectItem>
-																				{rawMaterialParties?.map(p => (
-																					<SelectItem key={p._id} value={p._id}>
-																						{p.acName}
-																					</SelectItem>
-																				))}
-																			</SelectContent>
-																		</Select>
+																		<div className="flex items-center gap-1">
+																			<Select onValueChange={val => f.onChange(val === "none" ? "" : val)} value={f.value || "none"}>
+																				<FormControl>
+																					<SelectTrigger>
+																						<SelectValue placeholder="Select supplier" />
+																					</SelectTrigger>
+																				</FormControl>
+																				<SelectContent>
+																					<SelectItem value="none">None</SelectItem>
+																					{rawMaterialParties?.map(p => (
+																						<SelectItem key={p._id} value={p._id}>
+																							{p.acName}
+																						</SelectItem>
+																					))}
+																				</SelectContent>
+																			</Select>
+																			<RateHistoryPopover partyId={part.rawMaterialParty} type="material" />
+																		</div>
 																		<FormMessage />
 																	</FormItem>
 																)}
 															/>
-															<RateHistoryPopover partyId={part.rawMaterialParty} type="material" />
-															<div className="flex flex-col gap-1.5">
-																<Label className="text-xs">Raw Material Cost (₹)</Label>
-																<Input disabled value={calc.rawMaterialCost.toFixed(2)} />
-															</div>
 															<div className="flex flex-col gap-1.5">
 																<Label className="text-xs">Proof Document</Label>
 																<ProofDocumentField onRemove={() => form.setValue(`parts.${pIdx}.rawMaterialProofDocumentUrl`, "")} onUpload={url => form.setValue(`parts.${pIdx}.rawMaterialProofDocumentUrl`, url)} url={part.rawMaterialProofDocumentUrl ?? ""} />
@@ -878,107 +883,109 @@ const CostingDialog = ({ lineItem, rfqId }: CostingDialogProps) => {
 														) : (
 															<div className="mb-3 space-y-3">
 																{part.labourEntries.map((entry, lIdx) => (
-																	<div className="bg-muted/30 grid grid-cols-2 gap-3 rounded-lg border p-3 sm:grid-cols-6" key={lIdx}>
-																		<FormField
-																			control={form.control}
-																			name={`parts.${pIdx}.labourEntries.${lIdx}.labourProcessType`}
-																			render={({ field: f }) => (
-																				<FormItem>
-																					<FormLabel className="text-xs">Process</FormLabel>
-																					<Select onValueChange={f.onChange} value={f.value}>
+																	<div className="bg-muted/30 rounded-lg border p-3" key={lIdx}>
+																		<div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+																			<FormField
+																				control={form.control}
+																				name={`parts.${pIdx}.labourEntries.${lIdx}.labourProcessType`}
+																				render={({ field: f }) => (
+																					<FormItem>
+																						<FormLabel className="text-xs">Process</FormLabel>
+																						<Select onValueChange={f.onChange} value={f.value}>
+																							<FormControl>
+																								<SelectTrigger>
+																									<SelectValue placeholder="Select" />
+																								</SelectTrigger>
+																							</FormControl>
+																							<SelectContent>
+																								{labourProcessTypes?.map(lpt => (
+																									<SelectItem key={lpt._id} value={lpt._id}>
+																										{lpt.name}
+																									</SelectItem>
+																								))}
+																							</SelectContent>
+																						</Select>
+																						<FormMessage />
+																					</FormItem>
+																				)}
+																			/>
+																			<FormField
+																				control={form.control}
+																				name={`parts.${pIdx}.labourEntries.${lIdx}.party`}
+																				render={({ field: f }) => (
+																					<FormItem>
+																						<FormLabel className="text-xs">Vendor</FormLabel>
+																						<div className="flex items-center gap-1">
+																							<Select onValueChange={val => f.onChange(val === "none" ? "" : val)} value={f.value || "none"}>
+																								<FormControl>
+																									<SelectTrigger>
+																										<SelectValue placeholder="Select" />
+																									</SelectTrigger>
+																								</FormControl>
+																								<SelectContent>
+																									<SelectItem value="none">None</SelectItem>
+																									{labourParties?.map(p => (
+																										<SelectItem key={p._id} value={p._id}>
+																											{p.acName}
+																										</SelectItem>
+																									))}
+																								</SelectContent>
+																							</Select>
+																							<RateHistoryPopover partyId={entry.party} type="labour" />
+																						</div>
+																						<FormMessage />
+																					</FormItem>
+																				)}
+																			/>
+																			<FormField
+																				control={form.control}
+																				name={`parts.${pIdx}.labourEntries.${lIdx}.rate`}
+																				render={({ field: f }) => (
+																					<FormItem>
+																						<FormLabel className="text-xs">Rate (₹)</FormLabel>
 																						<FormControl>
-																							<SelectTrigger>
-																								<SelectValue placeholder="Select" />
-																							</SelectTrigger>
+																							<Input min={0} onChange={e => f.onChange(parseFloat(e.target.value) || 0)} step="0.01" type="number" value={f.value || ""} />
 																						</FormControl>
-																						<SelectContent>
-																							{labourProcessTypes?.map(lpt => (
-																								<SelectItem key={lpt._id} value={lpt._id}>
-																									{lpt.name}
-																								</SelectItem>
-																							))}
-																						</SelectContent>
-																					</Select>
-																					<FormMessage />
-																				</FormItem>
-																			)}
-																		/>
-																		<FormField
-																			control={form.control}
-																			name={`parts.${pIdx}.labourEntries.${lIdx}.party`}
-																			render={({ field: f }) => (
-																				<FormItem>
-																					<FormLabel className="text-xs">Vendor</FormLabel>
-																					<Select onValueChange={val => f.onChange(val === "none" ? "" : val)} value={f.value || "none"}>
-																						<FormControl>
-																							<SelectTrigger>
-																								<SelectValue placeholder="Select" />
-																							</SelectTrigger>
-																						</FormControl>
-																						<SelectContent>
-																							<SelectItem value="none">None</SelectItem>
-																							{labourParties?.map(p => (
-																								<SelectItem key={p._id} value={p._id}>
-																									{p.acName}
-																								</SelectItem>
-																							))}
-																						</SelectContent>
-																					</Select>
-																					<FormMessage />
-																				</FormItem>
-																			)}
-																		/>
-																		<RateHistoryPopover partyId={entry.party} type="labour" />
-																		<FormField
-																			control={form.control}
-																			name={`parts.${pIdx}.labourEntries.${lIdx}.rate`}
-																			render={({ field: f }) => (
-																				<FormItem>
-																					<FormLabel className="text-xs">Rate (₹)</FormLabel>
-																					<FormControl>
-																						<Input min={0} onChange={e => f.onChange(parseFloat(e.target.value) || 0)} step="0.01" type="number" value={f.value || ""} />
-																					</FormControl>
-																					<FormMessage />
-																				</FormItem>
-																			)}
-																		/>
-																		<FormField
-																			control={form.control}
-																			name={`parts.${pIdx}.labourEntries.${lIdx}.rateType`}
-																			render={({ field: f }) => (
-																				<FormItem>
-																					<FormLabel className="text-xs">Rate Type</FormLabel>
-																					<Select onValueChange={f.onChange} value={f.value}>
-																						<FormControl>
-																							<SelectTrigger>
-																								<SelectValue />
-																							</SelectTrigger>
-																						</FormControl>
-																						<SelectContent>
-																							<SelectItem value="PER_PIECE">Per Piece</SelectItem>
-																							<SelectItem value="PER_KG">Per Kg</SelectItem>
-																						</SelectContent>
-																					</Select>
-																					<FormMessage />
-																				</FormItem>
-																			)}
-																		/>
-																		<div className="flex items-end gap-2">
-																			<div className="flex flex-1 flex-col gap-1.5">
+																						<FormMessage />
+																					</FormItem>
+																				)}
+																			/>
+																			<FormField
+																				control={form.control}
+																				name={`parts.${pIdx}.labourEntries.${lIdx}.rateType`}
+																				render={({ field: f }) => (
+																					<FormItem>
+																						<FormLabel className="text-xs">Rate Type</FormLabel>
+																						<Select onValueChange={f.onChange} value={f.value}>
+																							<FormControl>
+																								<SelectTrigger>
+																									<SelectValue />
+																								</SelectTrigger>
+																							</FormControl>
+																							<SelectContent>
+																								<SelectItem value="PER_PIECE">Per Piece</SelectItem>
+																								<SelectItem value="PER_KG">Per Kg</SelectItem>
+																							</SelectContent>
+																						</Select>
+																						<FormMessage />
+																					</FormItem>
+																				)}
+																			/>
+																			<div className="flex flex-col gap-1.5">
 																				<Label className="text-xs">Cost (₹)</Label>
 																				<Input disabled value={(entry.rateType === "PER_KG" ? entry.rate * calc.weight : entry.rate).toFixed(2)} />
 																			</div>
-																			<Button className="mb-0.5 h-9 w-9 shrink-0" onClick={() => removeLabourEntry(pIdx, lIdx)} size="icon" type="button" variant="destructive">
-																				<Trash2 className="h-4 w-4" />
+																			<div className="flex flex-col gap-1.5">
+																				<Label className="text-xs">Proof</Label>
+																				<ProofDocumentField onRemove={() => form.setValue(`parts.${pIdx}.labourEntries.${lIdx}.proofDocumentUrl`, "")} onUpload={url => form.setValue(`parts.${pIdx}.labourEntries.${lIdx}.proofDocumentUrl`, url)} url={entry.proofDocumentUrl ?? ""} />
+																			</div>
+																		</div>
+																		<div className="mt-2 flex justify-end">
+																			<Button className="h-8 w-8" onClick={() => removeLabourEntry(pIdx, lIdx)} size="icon" type="button" variant="destructive">
+																				<Trash2 className="h-3.5 w-3.5" />
 																			</Button>
 																		</div>
-																	<div className="flex items-end">
-																		<div className="flex flex-col gap-1.5">
-																			<Label className="text-xs">Proof</Label>
-																			<ProofDocumentField onRemove={() => form.setValue(`parts.${pIdx}.labourEntries.${lIdx}.proofDocumentUrl`, "")} onUpload={url => form.setValue(`parts.${pIdx}.labourEntries.${lIdx}.proofDocumentUrl`, url)} url={entry.proofDocumentUrl ?? ""} />
-																		</div>
 																	</div>
-																</div>
 																))}
 															</div>
 														)}
@@ -1008,26 +1015,28 @@ const CostingDialog = ({ lineItem, rfqId }: CostingDialogProps) => {
 																render={({ field: f }) => (
 																	<FormItem>
 																		<FormLabel className="text-xs">Vendor / Party</FormLabel>
-																		<Select onValueChange={val => f.onChange(val === "none" ? "" : val)} value={f.value || "none"}>
-																			<FormControl>
-																				<SelectTrigger>
-																					<SelectValue placeholder="Select vendor" />
-																				</SelectTrigger>
-																			</FormControl>
-																			<SelectContent>
-																				<SelectItem value="none">None</SelectItem>
-																				{completeSupplyParties?.map(p => (
-																					<SelectItem key={p._id} value={p._id}>
-																						{p.acName}
-																					</SelectItem>
-																				))}
-																			</SelectContent>
-																		</Select>
+																		<div className="flex items-center gap-1">
+																			<Select onValueChange={val => f.onChange(val === "none" ? "" : val)} value={f.value || "none"}>
+																				<FormControl>
+																					<SelectTrigger>
+																						<SelectValue placeholder="Select vendor" />
+																					</SelectTrigger>
+																				</FormControl>
+																				<SelectContent>
+																					<SelectItem value="none">None</SelectItem>
+																					{completeSupplyParties?.map(p => (
+																						<SelectItem key={p._id} value={p._id}>
+																							{p.acName}
+																						</SelectItem>
+																					))}
+																				</SelectContent>
+																			</Select>
+																			<RateHistoryPopover partyId={part.completeSupplyParty} type="supply" />
+																		</div>
 																		<FormMessage />
 																	</FormItem>
 																)}
 															/>
-															<RateHistoryPopover partyId={part.completeSupplyParty} type="supply" />
 															<FormField
 																control={form.control}
 																name={`parts.${pIdx}.completeSupplyDate`}
