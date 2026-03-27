@@ -11,6 +11,7 @@ export async function getServerSession() {
 		email: decodedToken?.email || null,
 		contactNo: null,
 		roles: decodedToken?.role ? [decodedToken.role] : [],
+		accessToken: token || null,
 	};
 	return session;
 }
