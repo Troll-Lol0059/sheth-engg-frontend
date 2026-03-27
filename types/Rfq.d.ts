@@ -71,6 +71,10 @@ type RfqLineItem = {
 	drawingUrl: string;
 	itemTechSpecs: RfqItemTechSpecs;
 	commercialSpecs: RfqItemCommercialSpecs;
+	isRegret?: boolean;
+	regretReason?: string;
+	regretReasonCustom?: string;
+	regretDate?: string;
 	isDeleted: boolean;
 };
 
@@ -94,6 +98,7 @@ type Rfq = {
 	items: RfqLineItem[] | string[];
 	activeTechnicalOffer?: string;
 	quotedItemCount?: number;
+	regrettedItemCount?: number;
 	isDeleted: boolean;
 	createdAt: string;
 	updatedAt: string;
@@ -139,6 +144,8 @@ type TechOfferSnapshotItem = {
 	hardness: TechOfferSnapshotHardness[];
 	remarks: string;
 	bom: TechOfferSnapshotBom[];
+	isRegret?: boolean;
+	regretReason?: string;
 };
 
 type TechOfferSnapshot = {
@@ -195,6 +202,8 @@ type CommercialOfferSnapshotItem = {
 	totalBeforeGst: number;
 	gstAmount: number;
 	totalWithGst: number;
+	isRegret?: boolean;
+	regretReason?: string;
 };
 
 type CommercialOfferSnapshot = {

@@ -16,6 +16,7 @@ import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "
 import { Pencil, Save, X, Package, ChevronDown, ChevronUp, Upload, FileText, ExternalLink, Loader2, Plus, Trash2, Calculator } from "lucide-react";
 import CostingDialog from "./costing-dialog";
 import ItemHistoryDialog from "./item-history-dialog";
+import RegretItemDialog from "./regret-item-dialog";
 import { ItemMasterSchema, LineItemSchema, BomSchema } from "@/schemas/rfq";
 import type { ItemMasterFormValues, LineItemFormValues, BomFormValues } from "@/schemas/rfq";
 
@@ -315,20 +316,35 @@ const ItemCard = ({ lineItem, idx, expanded, onToggle, rfqId }: ItemCardProps) =
 		setIsEditing(false);
 	};
 
+	const REGRET_REASON_LABELS: Record<string, string> = {
+		NOT_IN_SCOPE: "Not in our scope",
+		DRAWING_NOT_RECEIVED: "Drawing not received",
+		ITEM_NOT_AVAILABLE: "Item not available",
+		CUSTOM: "Custom",
+	};
+
 	return (
-		<div className="bg-card rounded-lg border">
+		<div className={`bg-card rounded-lg border ${lineItem.isRegret ? "border-destructive border-l-4" : ""}`}>
 			{/* Collapsed header */}
 			<button className="hover:bg-muted/50 flex w-full items-center justify-between px-4 py-3 text-left" onClick={onToggle} type="button">
 				<div className="flex items-center gap-4">
-					<Badge className="flex h-7 min-w-7 items-center justify-center rounded-full px-1.5" variant="outline">
+					<Badge className="flex h-7 min-w-7 items-center justify-center rounded-full px-1.5" variant={lineItem.isRegret ? "destructive" : "outline"}>
 						{lineItem.serialNumber || idx + 1}
 					</Badge>
 					<div>
-						<p className="text-sm font-semibold">{lineItem.item?.itemName || "Unknown Item"}</p>
+						<div className="flex items-center gap-2">
+							<p className="text-sm font-semibold">{lineItem.item?.itemName || "Unknown Item"}</p>
+							{lineItem.isRegret && <Badge variant="destructive" className="text-[10px]">Regretted</Badge>}
+						</div>
 						<p className="text-muted-foreground text-xs">
 							{lineItem.item?.itemCode || "—"} &middot; Qty: {lineItem.quantity} &middot; {lineItem.item?.itemType || "—"}
 							{lineItem.drawingUrl ? " &middot; Drawing attached" : ""}
 						</p>
+						{lineItem.isRegret && (
+							<p className="text-muted-foreground mt-0.5 text-xs">
+								{lineItem.regretReason === "CUSTOM" ? lineItem.regretReasonCustom : REGRET_REASON_LABELS[lineItem.regretReason ?? ""] ?? lineItem.regretReason}
+							</p>
+						)}
 					</div>
 				</div>
 				<div className="flex items-center gap-2">
@@ -347,6 +363,9 @@ const ItemCard = ({ lineItem, idx, expanded, onToggle, rfqId }: ItemCardProps) =
 							<div className="flex gap-2">
 								<ItemHistoryDialog itemCode={lineItem.item?.itemCode ?? ""} itemName={lineItem.item?.itemName ?? "Unknown"} />
 								<CostingDialog lineItem={lineItem} rfqId={rfqId} />
+								{!lineItem.isRegret && (
+									<RegretItemDialog rfqItemId={lineItem._id} rfqId={rfqId} itemName={lineItem.item?.itemName ?? "Unknown"} />
+								)}
 								<Button onClick={() => setIsEditing(true)} size="sm" variant="outline">
 									<Pencil className="mr-2 h-3 w-3" />
 									Edit Item
