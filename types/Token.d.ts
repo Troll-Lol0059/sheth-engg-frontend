@@ -1,10 +1,8 @@
 type Token = {
-	sub: string;
-	avatarUrl: string;
-	name: string;
+	_id: string;
 	email: string;
-	contactNo: string;
-	roles: string[];
+	userName: string;
+	role: string;
 	iat: number;
 	exp: number;
 };

@@ -1,3 +1,5 @@
-// Placeholder assets — replace with actual logo/images when available
-export const logo = "/next.svg";
-export const authWarning = "/globe.svg";
+import logo from "./images/logo.svg";
+import logoIcon from "./images/logo-icon.svg";
+import favicon from "./images/favicon.svg";
+
+export { logo, logoIcon, favicon };

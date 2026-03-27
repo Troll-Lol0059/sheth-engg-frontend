@@ -15,8 +15,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Dummy App",
-  description: "A platform for all your needs.",
+  title: {
+    default: "Sheth Engineering",
+    template: "%s | Sheth Engineering",
+  },
+  description: "AI-Powered RFQ Management & Costing Platform.",
+  keywords: ["RFQ", "costing", "engineering", "quotation", "Sheth Engineering"],
+  authors: [{ name: "Sheth Engineering" }],
 };
 
 export default function RootLayout({

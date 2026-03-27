@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
-// import { logo } from "@assets";
+import Image from "next/image";
+import { logo } from "@assets";
 import MenuItem from "./menu-item";
 import { LogOut } from "lucide-react";
 import { Button } from "@components/ui/button";
@@ -26,8 +27,7 @@ const SidebarSheet = ({ openSheet, setOpenSheet, isPending = false, onLogout, it
 					<SheetTitle asChild>
 						<Button className="mt-2" size="default" variant="ghost" asChild>
 							<Link href="/">
-								<div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground">D</div>
-								<h1 className="text-xl font-bold text-primary">{APP_NAME}</h1>
+								<Image alt={APP_NAME} src={logo} width={160} height={40} priority />
 							</Link>
 						</Button>
 					</SheetTitle>
