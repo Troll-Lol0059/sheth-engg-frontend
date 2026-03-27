@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@components/ui/form";
 import { Wrench, Pencil, Save, X, Plus, Trash2, Search, ChevronLeft, ChevronRight, Download, FileSpreadsheet, Loader2, History, Send, CheckCircle2, AlertCircle, Clock, FileText, ChevronDown, ChevronUp, Check, GitCompareArrows } from "lucide-react";
 import { LineItemSchema, BomSchema } from "@schemas/rfq";
+import RegretItemDialog from "./regret-item-dialog";
 import type { LineItemFormValues, BomFormValues } from "@schemas/rfq";
 
 const ITEMS_PER_PAGE = 10;
@@ -804,24 +805,28 @@ const TechItemCard = ({ lineItem, rfqId }: TechItemCardProps) => {
 	};
 
 	return (
-		<Card>
+		<Card className={lineItem.isRegret ? "border-destructive/40 border-l-4" : ""}>
 			<CardHeader className="pb-3">
 				<CardTitle className="flex items-center gap-2 text-base">
-					<Badge className="flex h-7 min-w-7 items-center justify-center rounded-full px-1.5" variant="outline">
+					<Badge className="flex h-7 min-w-7 items-center justify-center rounded-full px-1.5" variant={lineItem.isRegret ? "destructive" : "outline"}>
 						{lineItem.serialNumber || "—"}
 					</Badge>
-					<Wrench className="h-4 w-4" />
-					{item?.itemName || "—"}
+					<Wrench className={`h-4 w-4 ${lineItem.isRegret ? "text-muted-foreground" : ""}`} />
+					<span className={lineItem.isRegret ? "text-muted-foreground" : ""}>{item?.itemName || "—"}</span>
 					<Badge variant="outline" className="ml-1 text-xs">
 						{item?.itemType || "UNIT"}
 					</Badge>
+					{lineItem.isRegret && <Badge variant="destructive" className="text-xs">Regretted</Badge>}
 					<span className="text-muted-foreground ml-auto flex items-center gap-2 text-sm font-normal">
 						{item?.itemCode}
 						{!isEditing ? (
-							<Button onClick={() => setIsEditing(true)} size="sm" variant="outline">
-								<Pencil className="mr-2 h-3 w-3" />
-								Edit
-							</Button>
+							<>
+								{!lineItem.isRegret && <RegretItemDialog rfqItemId={lineItem._id} rfqId={rfqId} itemName={lineItem.item?.itemName ?? "Unknown"} />}
+								<Button onClick={() => setIsEditing(true)} size="sm" variant="outline">
+									<Pencil className="mr-2 h-3 w-3" />
+									Edit
+								</Button>
+							</>
 						) : (
 							<Button onClick={handleCancel} size="sm" variant="outline">
 								<X className="mr-2 h-3 w-3" />

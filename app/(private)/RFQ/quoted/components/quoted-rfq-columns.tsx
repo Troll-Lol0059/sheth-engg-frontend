@@ -28,7 +28,13 @@ export const quotedRfqColumns: ColumnDef<Rfq>[] = [
 			const items = row.original.items;
 			const totalItems = Array.isArray(items) ? items.length : 0;
 			const quotedCount = row.original.quotedItemCount ?? 0;
-			return `${quotedCount} / ${totalItems}`;
+			const regrettedCount = row.original.regrettedItemCount ?? 0;
+			return (
+				<div className="flex items-center gap-1.5">
+					<span>{quotedCount} / {totalItems}</span>
+					{regrettedCount > 0 && <Badge variant="destructive" className="text-[10px]">{regrettedCount} regretted</Badge>}
+				</div>
+			);
 		},
 	},
 	{

@@ -9,9 +9,10 @@ import { Button } from "@components/ui/button";
 import { Input } from "@components/ui/input";
 import { Textarea } from "@components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@components/ui/table";
-import { IndianRupee, Loader2, Search, ChevronLeft, ChevronRight, Download, FileSpreadsheet, History, Send, CheckCircle2, AlertCircle, Clock, FileText, ChevronDown, ChevronUp, Plus, Trash2, Check, GitCompareArrows } from "lucide-react";
+import { IndianRupee, Loader2, Search, ChevronLeft, ChevronRight, Download, FileSpreadsheet, History, Send, CheckCircle2, AlertCircle, Clock, FileText, ChevronDown, ChevronUp, Plus, Trash2, Check, GitCompareArrows, Undo2 } from "lucide-react";
 import CostingDialog from "./costing-dialog";
 import ItemHistoryDialog from "./item-history-dialog";
+import RegretItemDialog from "./regret-item-dialog";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -36,6 +37,29 @@ const CostingSummary = ({ rfqId, items }: CostingSummaryProps) => {
 	const [unquotedPage, setUnquotedPage] = useState(0);
 	const [downloadingSheetPdf, setDownloadingSheetPdf] = useState(false);
 	const [downloadingSheetExcel, setDownloadingSheetExcel] = useState(false);
+	const queryClient = useQueryClient();
+
+	const REGRET_REASON_LABELS: Record<string, string> = {
+		NOT_IN_SCOPE: "Not in our scope",
+		DRAWING_NOT_RECEIVED: "Drawing not received",
+		ITEM_NOT_AVAILABLE: "Item not available",
+		CUSTOM: "Custom",
+	};
+
+	const { mutate: undoRegret, isPending: isUndoing } = useMutation({
+		mutationFn: async (rfqItemId: string) => {
+			const response = await axios.patch(`/api/v1/rfqItem/${rfqItemId}/regret`, { isRegret: false });
+			return response?.data;
+		},
+		onSuccess: async () => {
+			toast.success("Item regret undone");
+			await Promise.all([
+				queryClient.invalidateQueries({ queryKey: ["rfq", rfqId] }),
+				queryClient.invalidateQueries({ queryKey: ["costings-rfq", rfqId] }),
+			]);
+		},
+		onError: () => toast.error("Failed to undo regret"),
+	});
 
 	const handleSheetDownload = async (format: "pdf" | "excel") => {
 		const setter = format === "pdf" ? setDownloadingSheetPdf : setDownloadingSheetExcel;
@@ -96,8 +120,15 @@ const CostingSummary = ({ rfqId, items }: CostingSummaryProps) => {
 		});
 	}, [costings, search]);
 
+	const regrettedItems = useMemo(() => {
+		const all = items.filter(li => li.isRegret && !costingByRfqItemId.has(li._id));
+		if (!search.trim()) return all;
+		const q = search.toLowerCase();
+		return all.filter(li => (li.serialNumber ?? "").toLowerCase().includes(q) || (li.item?.itemName ?? "").toLowerCase().includes(q) || (li.item?.itemCode ?? "").toLowerCase().includes(q));
+	}, [items, costingByRfqItemId, search]);
+
 	const unquotedItems = useMemo(() => {
-		const all = items.filter(li => !costingByRfqItemId.has(li._id));
+		const all = items.filter(li => !costingByRfqItemId.has(li._id) && !li.isRegret);
 		if (!search.trim()) return all;
 		const q = search.toLowerCase();
 		return all.filter(li => (li.serialNumber ?? "").toLowerCase().includes(q) || (li.item?.itemName ?? "").toLowerCase().includes(q) || (li.item?.itemCode ?? "").toLowerCase().includes(q));
@@ -143,6 +174,11 @@ const CostingSummary = ({ rfqId, items }: CostingSummaryProps) => {
 							<Badge variant={quotedCount === items.length ? "success" : "warning"}>
 								{quotedCount}/{items.length} items quoted
 							</Badge>
+							{regrettedItems.length > 0 && (
+								<Badge variant="destructive">
+									{regrettedItems.length} regretted
+								</Badge>
+							)}
 							{quotedCount > 0 && (
 								<>
 									<Button disabled={downloadingSheetPdf} onClick={() => handleSheetDownload("pdf")} size="sm" title="Download Costing Sheet PDF" variant="outline">
@@ -307,6 +343,42 @@ const CostingSummary = ({ rfqId, items }: CostingSummaryProps) => {
 						</>
 					)}
 
+					{/* Regretted items */}
+					{regrettedItems.length > 0 && (
+						<div className="space-y-2">
+							<h4 className="text-destructive text-sm font-semibold">Regretted Items ({regrettedItems.length})</h4>
+							<div className="space-y-2">
+								{regrettedItems.map(li => (
+									<div key={li._id} className="border-destructive/40 flex items-center justify-between rounded-lg border border-l-4 px-4 py-3">
+										<div className="flex items-center gap-3">
+											<Badge className="flex h-7 min-w-7 items-center justify-center rounded-full px-1.5" variant="destructive">
+												{li.serialNumber || "—"}
+											</Badge>
+											<div>
+												<p className="text-sm font-medium">{li.item?.itemName || "Unknown Item"}</p>
+												<p className="text-muted-foreground text-xs">
+													{li.item?.itemCode} &middot; Qty: {li.quantity} &middot; {li.item?.itemType || "UNIT"}
+												</p>
+												<p className="text-destructive mt-0.5 text-xs font-medium">
+													{li.regretReason === "CUSTOM" ? li.regretReasonCustom : REGRET_REASON_LABELS[li.regretReason ?? ""] ?? li.regretReason}
+												</p>
+											</div>
+										</div>
+										<Button
+											size="sm"
+											variant="outline"
+											disabled={isUndoing}
+											onClick={() => undoRegret(li._id)}
+										>
+											<Undo2 className="mr-1 h-3 w-3" />
+											Undo Regret
+										</Button>
+									</div>
+								))}
+							</div>
+						</div>
+					)}
+
 					{/* Items without costing yet */}
 					{pagedUnquoted.length > 0 && (
 						<div className="space-y-2">
@@ -328,6 +400,7 @@ const CostingSummary = ({ rfqId, items }: CostingSummaryProps) => {
 										<div className="flex items-center gap-1">
 											<ItemHistoryDialog itemCode={li.item?.itemCode ?? ""} itemName={li.item?.itemName ?? "Unknown"} />
 											<CostingDialog lineItem={li} rfqId={rfqId} />
+											<RegretItemDialog rfqItemId={li._id} rfqId={rfqId} itemName={li.item?.itemName ?? "Unknown"} />
 										</div>
 									</div>
 								))}
