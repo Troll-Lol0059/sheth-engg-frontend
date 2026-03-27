@@ -1,7 +1,5 @@
 "use client";
 import { useState } from "react";
-import axios from "@config/axios";
-import { AxiosError } from "axios";
 import useSession from "@store/session";
 import { Menu } from "lucide-react";
 import SidebarSheet from "./sidebar-sheet";
@@ -25,7 +23,7 @@ const Navbar = ({ menuItemsData }: NavbarProps) => {
 
 	async function onLogout() {
 		setOnLogoutToast(toast.loading("Loading...", { description: "Please wait while we logout you!" }));
-		await axios.post("/api/v1/user/logout");
+		await fetch("/api/auth/logout", { method: "POST" });
 	}
 
 	const { mutate, isPending } = useMutation({
@@ -35,9 +33,8 @@ const Navbar = ({ menuItemsData }: NavbarProps) => {
 			router.replace("/auth/login");
 			setSession(null);
 		},
-		onError: (error: unknown) => {
-			const errorData = (error as AxiosError)?.response?.data as ErrorData;
-			toast.error("Error!", { id: onLogoutToast, description: errorData?.message || "An error occured!" });
+		onError: () => {
+			toast.error("Error!", { id: onLogoutToast, description: "An error occurred while logging out!" });
 		},
 	});
 

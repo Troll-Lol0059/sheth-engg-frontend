@@ -5,8 +5,6 @@ import { logo, logoIcon } from "@assets";
 import { cn } from "@lib/utils";
 import { useState } from "react";
 import { APP_NAME } from "@data";
-import axios from "@config/axios";
-import { AxiosError } from "axios";
 import MenuItem from "./menu-item";
 import useSession from "@store/session";
 import { useRouter } from "next/navigation";
@@ -29,7 +27,7 @@ const Sidebar = ({ menuItems }: SidebarProps) => {
 
 	async function onLogout() {
 		setOnLogoutToast(toast.loading("Loading...", { description: "Please wait while we Logout you!" }));
-		await axios.post("/api/v1/user/logout");
+		await fetch("/api/auth/logout", { method: "POST" });
 	}
 
 	const { mutate, isPending } = useMutation({
@@ -39,9 +37,8 @@ const Sidebar = ({ menuItems }: SidebarProps) => {
 			router.replace("/auth/login");
 			setSession(null);
 		},
-		onError: (error: unknown) => {
-			const errorData = (error as AxiosError)?.response?.data as ErrorData;
-			toast.error("Error!", { id: onLogoutToast, description: errorData?.message || "An error occured!" });
+		onError: () => {
+			toast.error("Error!", { id: onLogoutToast, description: "An error occurred while logging out!" });
 		},
 	});
 

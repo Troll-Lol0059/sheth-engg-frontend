@@ -2,8 +2,6 @@
 import { z } from "zod";
 import Link from "next/link";
 import { useState } from "react";
-import axios from "@config/axios";
-import { AxiosError } from "axios";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { Input } from "@components/ui/input";
@@ -37,8 +35,18 @@ const LoginForm = () => {
 	const onLogin = async (values: z.infer<typeof LoginSchema>) => {
 		setOnLoginToast(toast.loading("Loading...", { description: "Please wait while we log you in!" }));
 		const { email, password } = values;
-		const response = await axios.post("/api/v1/user/login", { email, password });
-		return response?.data;
+		const response = await fetch("/api/auth/login", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ email, password }),
+		});
+		const data = await response.json();
+		if (!response.ok) {
+			const error = new Error(data?.message || "Login failed") as Error & { response: { data: ErrorData; statusText: string } };
+			error.response = { data, statusText: response.statusText };
+			throw error;
+		}
+		return data;
 	};
 
 	const { mutate, isPending } = useMutation({
@@ -72,16 +80,18 @@ const LoginForm = () => {
 				email: user?.email ?? null,
 				contactNo: user?.phoneNumber ?? null,
 				roles: user?.role ? [user.role] : [],
+				accessToken: data?.data?.accessToken ?? null,
 			});
 
 			router.replace("/RFQ");
 		},
 		onError: (error: unknown) => {
-			const errorData = (error as AxiosError)?.response?.data as ErrorData;
+			const err = error as { response?: { data?: ErrorData; statusText?: string } };
+			const errorData = err?.response?.data;
 			const errorTitle = errorData?.error ?? "Error!";
 			toast.error(errorTitle, {
 				id: onLoginToast,
-				description: errorData?.message ?? (error as AxiosError)?.response?.statusText ?? "An error occurred while logging in!",
+				description: errorData?.message ?? err?.response?.statusText ?? "An error occurred while logging in!",
 			});
 		},
 	});

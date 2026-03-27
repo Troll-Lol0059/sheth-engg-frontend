@@ -5,4 +5,5 @@ type AuthSession = {
 	email: string | null;
 	contactNo: string | null;
 	roles: string[];
+	accessToken: string | null;
 };
