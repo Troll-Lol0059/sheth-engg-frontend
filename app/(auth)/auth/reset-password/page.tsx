@@ -1,14 +1,14 @@
 import Image from "next/image";
 import { Metadata } from "next";
 import { isEmail } from "validator";
-import { authWarning } from "@assets";
+import { logo } from "@assets";
 import { notFound } from "next/navigation";
 import { ResetPasswordForm } from "./components";
 import { APP_DESCRIPTION, APP_NAME } from "@data";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@components/ui/card";
 
 export const metadata: Metadata = {
-	title: `${APP_NAME} | Reset Password`,
+	title: "Reset Password",
 	description: APP_DESCRIPTION,
 };
 
@@ -30,10 +30,10 @@ const ResetPasswordPage = async (props: ResetPasswordPageProps) => {
 				<Card className="xs:px-6 z-10 m-5 max-w-lg">
 					<CardHeader className="text-center">
 						<div className="mb-4 flex justify-center">
-							<Image alt="placeholder" priority src={authWarning} width={64} height={64} />
+							<Image alt={APP_NAME} priority src={logo} width={200} height={48} />
 						</div>
-						<CardTitle>{`Reset Password`}</CardTitle>
-						<CardDescription>{`Easily change your password to enhance security and access personalized services on Impactors.`}</CardDescription>
+						<CardTitle>Reset Password</CardTitle>
+						<CardDescription>Change your password to enhance security and access your {APP_NAME} account.</CardDescription>
 					</CardHeader>
 					<CardContent>
 						<ResetPasswordForm token={searchParams?.token} />

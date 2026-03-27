@@ -22,7 +22,7 @@ const ModuleHelp = ({ title, description, sections }: ModuleHelpProps) => {
 	return (
 		<Sheet onOpenChange={setOpen} open={open}>
 			<SheetTrigger asChild>
-				<Button className="gap-1.5" size="sm" variant="outline">
+				<Button className="gap-1.5" variant="outline">
 					<HelpCircle className="h-4 w-4" />
 					Help
 				</Button>

@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { LoginForm } from "./components";
 
 export const metadata: Metadata = {
-	title: "Login | Dummy App",
-	description: "Login to your account to continue.",
+	title: "Login",
+	description: "Login to your Sheth Engineering account to continue.",
 };
 
 export default function LoginPage() {

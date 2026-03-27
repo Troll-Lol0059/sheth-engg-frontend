@@ -12,7 +12,9 @@ import { Button } from "@components/ui/button";
 import { Input } from "@components/ui/input";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@components/ui/form";
 import { Badge } from "@components/ui/badge";
-import { Loader2, Building2, Upload, Save, Image } from "lucide-react";
+import { Loader2, Building2, Upload, Save } from "lucide-react";
+import NextImage from "next/image";
+import { logo as defaultLogo } from "@assets";
 import ModuleHelp from "@components/common/module-help";
 import { companyProfileHelp } from "@data/helpData";
 
@@ -140,9 +142,8 @@ const CompanyProfileForm = ({ initialData }: CompanyProfileFormProps) => {
 								<img src={profileData.logoUrl} alt="Company Logo" className="max-h-full max-w-full object-contain" />
 							</div>
 						) : (
-							<div className="text-muted-foreground flex h-24 w-48 items-center justify-center rounded-lg border border-dashed">
-								<Image className="mr-2 h-5 w-5" />
-								No logo
+							<div className="flex h-24 w-48 items-center justify-center overflow-hidden rounded-lg border border-dashed bg-white p-2">
+								<NextImage alt="Default Logo" src={defaultLogo} width={160} height={40} />
 							</div>
 						)}
 						<div className="space-y-2">

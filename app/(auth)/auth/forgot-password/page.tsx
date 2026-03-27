@@ -4,15 +4,15 @@ import { logo } from "@assets";
 import ForgotPasswordForm from "./components/forget-password";
 
 export const metadata: Metadata = {
-    title: "Forgot Password | Cyber Essentials",
-    description: "Forgot your Cyber Essentials password? Reset it here.",
+	title: "Forgot Password",
+	description: "Forgot your Sheth Engineering password? Reset it here.",
 };
 
 export default async function ForgotPasswordPage() {
-    return (
-        <section className="w-full flex flex-col items-center justify-center bg-white">
-            <Image alt="Logo" src={logo} width={150} height={150} />
-            <ForgotPasswordForm />
-        </section>
-    );
+	return (
+		<section className="flex w-full flex-col items-center justify-center bg-white">
+			<Image alt="Sheth Engineering" src={logo} width={200} height={48} priority />
+			<ForgotPasswordForm />
+		</section>
+	);
 }

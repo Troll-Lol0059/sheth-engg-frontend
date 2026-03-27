@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
-// import { logo } from "@assets";
+import Image from "next/image";
+import { logo, logoIcon } from "@assets";
 import { cn } from "@lib/utils";
 import { useState } from "react";
 import { APP_NAME } from "@data";
@@ -56,8 +57,11 @@ const Sidebar = ({ menuItems }: SidebarProps) => {
 			</Button>
 			<Button className="transition-transform duration-300 ease-in-out" size={sidebarIsOpen ? "default" : "icon"} variant="ghost" asChild>
 				<Link href="/">
-					<div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground">D</div>
-					<h1 className={cn("text-xl font-bold text-primary transition-transform duration-300 ease-in-out", sidebarIsOpen ? "translate-x-0" : "hidden -translate-x-96")}>{APP_NAME}</h1>
+					{sidebarIsOpen ? (
+						<Image alt={APP_NAME} src={logo} width={160} height={40} priority />
+					) : (
+						<Image alt={APP_NAME} src={logoIcon} width={32} height={32} priority />
+					)}
 				</Link>
 			</Button>
 			<ScrollArea className="flex w-full flex-col items-center justify-center gap-2">
