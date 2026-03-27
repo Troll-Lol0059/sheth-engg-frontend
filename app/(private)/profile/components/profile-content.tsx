@@ -23,7 +23,7 @@ interface ProfileContentProps {
 
 const ProfileContent = ({ initialData }: ProfileContentProps) => {
 	const queryClient = useQueryClient();
-	const { setSession } = useSession();
+	const { session, setSession } = useSession();
 
 	const { data: profileData } = useQuery({
 		queryKey: ["user-profile"],
@@ -73,6 +73,7 @@ const ProfileContent = ({ initialData }: ProfileContentProps) => {
 				email: user?.email ?? null,
 				contactNo: user?.phoneNumber ?? null,
 				roles: user?.role ? [user.role] : [],
+				accessToken: session?.accessToken ?? null,
 			});
 		},
 		onError: (error: unknown) => {
