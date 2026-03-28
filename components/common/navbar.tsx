@@ -4,6 +4,7 @@ import useSession from "@store/session";
 import { Menu } from "lucide-react";
 import SidebarSheet from "./sidebar-sheet";
 import NotificationBell from "./notification-bell";
+import EmailBadge from "./email-badge";
 import { useRouter } from "next/navigation";
 import { Button } from "@components/ui/button";
 import { toast } from "@components/ui/toaster";
@@ -49,6 +50,9 @@ const Navbar = ({ menuItemsData }: NavbarProps) => {
 					<NavigationMenuList>
 						<NavigationMenuItem>
 							<p className="xs:block hidden">{`Hi ${session?.name ?? "User"}`}</p>
+						</NavigationMenuItem>
+						<NavigationMenuItem>
+							<EmailBadge />
 						</NavigationMenuItem>
 						<NavigationMenuItem>
 							<NotificationBell />

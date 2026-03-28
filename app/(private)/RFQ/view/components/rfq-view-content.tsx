@@ -36,21 +36,21 @@ const RfqViewContent = ({ rfq: initialRfq }: RfqViewContentProps) => {
 	const hasPopulatedItems = items.length > 0 && typeof items[0] !== "string";
 
 	return (
-		<div className="flex flex-col gap-6 p-6">
-			<div className="flex items-center justify-between">
-				<div className="flex items-center gap-4">
-					<Button className="h-9 w-9" onClick={() => router.push(rfq.isRegret ? "/RFQ/regret" : rfq.isRevised ? "/RFQ/revised" : rfq.isQuoted ? "/RFQ/quoted" : "/RFQ/pending")} size="icon" variant="ghost">
+		<div className="flex flex-col gap-6 p-4 sm:p-6">
+			<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+				<div className="flex min-w-0 items-center gap-3">
+					<Button className="h-9 w-9 shrink-0" onClick={() => router.push(rfq.isRegret ? "/RFQ/regret" : rfq.isRevised ? "/RFQ/revised" : rfq.isQuoted ? "/RFQ/quoted" : "/RFQ/pending")} size="icon" variant="ghost">
 						<ArrowLeft className="h-5 w-5" />
 					</Button>
-					<div>
-						<h1 className="text-2xl font-bold">RFQ — {rfq.prNumber}</h1>
-						<p className="text-sm text-muted-foreground">
+					<div className="min-w-0">
+						<h1 className="truncate text-xl font-bold sm:text-2xl">RFQ — {rfq.prNumber}</h1>
+						<p className="truncate text-sm text-muted-foreground">
 							{rfq.companyName} &middot; {rfq.location}
 							{rfq.quotationNumber ? ` · Q.No: ${rfq.quotationNumber}` : ""}
 						</p>
 					</div>
 				</div>
-				<div className="flex items-center gap-2">
+				<div className="flex shrink-0 items-center gap-2 self-end sm:self-center">
 					<ModuleHelp description="Complete guide to RFQ details, costing, and offers" sections={rfqViewHelp} title="RFQ Detail — Help" />
 					<MarkQuotedDialog rfq={rfq} />
 				</div>
@@ -62,20 +62,22 @@ const RfqViewContent = ({ rfq: initialRfq }: RfqViewContentProps) => {
 
 			{hasPopulatedItems ? (
 				<Tabs defaultValue="line-items" className="w-full">
-					<TabsList>
-						<TabsTrigger value="line-items" className="gap-1.5">
-							<Package className="h-4 w-4" />
-							Line Items
-						</TabsTrigger>
-						<TabsTrigger value="costing" className="gap-1.5">
-							<Calculator className="h-4 w-4" />
-							Costing Summary
-						</TabsTrigger>
-						<TabsTrigger value="technical" className="gap-1.5">
-							<Wrench className="h-4 w-4" />
-							Technical Summary
-						</TabsTrigger>
-					</TabsList>
+					<div className="overflow-x-auto">
+						<TabsList>
+							<TabsTrigger value="line-items" className="gap-1.5">
+								<Package className="h-4 w-4" />
+								<span className="hidden sm:inline">Line</span> Items
+							</TabsTrigger>
+							<TabsTrigger value="costing" className="gap-1.5">
+								<Calculator className="h-4 w-4" />
+								Costing
+							</TabsTrigger>
+							<TabsTrigger value="technical" className="gap-1.5">
+								<Wrench className="h-4 w-4" />
+								Technical
+							</TabsTrigger>
+						</TabsList>
+					</div>
 
 					<TabsContent value="line-items" className="space-y-4">
 						<RfqItemsSection items={items} rfqId={rfq._id} />
