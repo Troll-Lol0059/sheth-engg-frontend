@@ -1,5 +1,12 @@
 export const menuItems: MenuItem[] = [
 	{
+		uuid: "10",
+		name: "Emails",
+		src: "/emails",
+		icon: "Inbox",
+		allowedRoles: [],
+	},
+	{
 		uuid: "1",
 		name: "RFQ",
 		src: "/RFQ",
@@ -123,7 +130,13 @@ export const menuItems: MenuItem[] = [
 				uuid: "6-1",
 				name: "Company Profile",
 				src: "/settings/company-profile",
-				icon: "building",
+				icon: "Building",
+			},
+			{
+				uuid: "6-2",
+				name: "Email Settings",
+				src: "/settings/email",
+				icon: "Mail",
 			},
 		],
 		allowedRoles: [],

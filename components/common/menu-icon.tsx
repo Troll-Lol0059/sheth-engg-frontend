@@ -14,9 +14,11 @@ import {
 	FileSpreadsheet,
 	Gem,
 	Hammer,
+	Inbox,
 	LandPlot,
 	LayoutDashboard,
 	List,
+	Mail,
 	NotebookPen,
 	Package,
 	RefreshCw,
@@ -107,6 +109,10 @@ const MenuIcon = ({ icon }: MenuIconProps) => {
 			return <UserCog />;
 		case "ScrollText":
 			return <ScrollText />;
+		case "Inbox":
+			return <Inbox />;
+		case "Mail":
+			return <Mail />;
 		default:
 			return <CircleDot />;
 	}

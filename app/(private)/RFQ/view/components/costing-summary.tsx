@@ -164,12 +164,13 @@ const CostingSummary = ({ rfqId, items }: CostingSummaryProps) => {
 
 			<Card>
 				<CardHeader>
-					<CardTitle className="flex items-center justify-between text-lg">
-						<span className="flex items-center gap-2">
-							<IndianRupee className="h-5 w-5" />
-							Costing Summary
-						</span>
-						<div className="flex items-center gap-3">
+					<CardTitle className="text-lg">
+						<div className="flex flex-wrap items-center justify-between gap-2">
+							<span className="flex items-center gap-2">
+								<IndianRupee className="h-5 w-5" />
+								Costing Summary
+							</span>
+						<div className="flex flex-wrap items-center gap-2">
 							{grandTotal > 0 && <span className="text-sm font-semibold">Grand Total: ₹{grandTotal.toFixed(2)}</span>}
 							<Badge variant={quotedCount === items.length ? "success" : "warning"}>
 								{quotedCount}/{items.length} items quoted
@@ -192,6 +193,7 @@ const CostingSummary = ({ rfqId, items }: CostingSummaryProps) => {
 								</>
 							)}
 						</div>
+						</div>
 					</CardTitle>
 				</CardHeader>
 				<CardContent className="space-y-4">
@@ -213,8 +215,8 @@ const CostingSummary = ({ rfqId, items }: CostingSummaryProps) => {
 					{/* Quoted items table */}
 					{pagedCostings.length > 0 && (
 						<>
-							<div className="rounded-md border">
-								<Table>
+							<div className="overflow-x-auto rounded-md border">
+								<Table className="min-w-[1100px]">
 									<TableHeader>
 										<TableRow>
 											<TableHead>Sl. No.</TableHead>
@@ -349,22 +351,23 @@ const CostingSummary = ({ rfqId, items }: CostingSummaryProps) => {
 							<h4 className="text-destructive text-sm font-semibold">Regretted Items ({regrettedItems.length})</h4>
 							<div className="space-y-2">
 								{regrettedItems.map(li => (
-									<div key={li._id} className="border-destructive/40 flex items-center justify-between rounded-lg border border-l-4 px-4 py-3">
-										<div className="flex items-center gap-3">
-											<Badge className="flex h-7 min-w-7 items-center justify-center rounded-full px-1.5" variant="destructive">
+									<div key={li._id} className="border-destructive/40 flex flex-col gap-2 rounded-lg border border-l-4 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+										<div className="flex min-w-0 items-center gap-3">
+											<Badge className="flex h-7 min-w-7 shrink-0 items-center justify-center rounded-full px-1.5" variant="destructive">
 												{li.serialNumber || "—"}
 											</Badge>
-											<div>
-												<p className="text-sm font-medium">{li.item?.itemName || "Unknown Item"}</p>
-												<p className="text-muted-foreground text-xs">
+											<div className="min-w-0">
+												<p className="truncate text-sm font-medium">{li.item?.itemName || "Unknown Item"}</p>
+												<p className="text-muted-foreground truncate text-xs">
 													{li.item?.itemCode} &middot; Qty: {li.quantity} &middot; {li.item?.itemType || "UNIT"}
 												</p>
-												<p className="text-destructive mt-0.5 text-xs font-medium">
+												<p className="text-destructive mt-0.5 truncate text-xs font-medium">
 													{li.regretReason === "CUSTOM" ? li.regretReasonCustom : REGRET_REASON_LABELS[li.regretReason ?? ""] ?? li.regretReason}
 												</p>
 											</div>
 										</div>
 										<Button
+											className="shrink-0 self-end sm:self-center"
 											size="sm"
 											variant="outline"
 											disabled={isUndoing}
@@ -385,19 +388,19 @@ const CostingSummary = ({ rfqId, items }: CostingSummaryProps) => {
 							<h4 className="text-muted-foreground text-sm font-semibold">Items without costing ({unquotedItems.length})</h4>
 							<div className="space-y-2">
 								{pagedUnquoted.map(li => (
-									<div key={li._id} className="flex items-center justify-between rounded-lg border px-4 py-3">
-										<div className="flex items-center gap-3">
-											<Badge className="flex h-7 min-w-7 items-center justify-center rounded-full px-1.5" variant="outline">
+									<div key={li._id} className="flex flex-col gap-2 rounded-lg border px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+										<div className="flex min-w-0 items-center gap-3">
+											<Badge className="flex h-7 min-w-7 shrink-0 items-center justify-center rounded-full px-1.5" variant="outline">
 												{li.serialNumber || "—"}
 											</Badge>
-											<div>
-												<p className="text-sm font-medium">{li.item?.itemName || "Unknown Item"}</p>
-												<p className="text-muted-foreground text-xs">
+											<div className="min-w-0">
+												<p className="truncate text-sm font-medium">{li.item?.itemName || "Unknown Item"}</p>
+												<p className="text-muted-foreground truncate text-xs">
 													{li.item?.itemCode} &middot; Qty: {li.quantity} &middot; {li.item?.itemType || "UNIT"}
 												</p>
 											</div>
 										</div>
-										<div className="flex items-center gap-1">
+										<div className="flex shrink-0 items-center gap-1 self-end sm:self-center">
 											<ItemHistoryDialog itemCode={li.item?.itemCode ?? ""} itemName={li.item?.itemName ?? "Unknown"} />
 											<CostingDialog lineItem={li} rfqId={rfqId} />
 											<RegretItemDialog rfqItemId={li._id} rfqId={rfqId} itemName={li.item?.itemName ?? "Unknown"} />
@@ -680,8 +683,9 @@ const CommercialOfferPanel = ({ rfqId }: CommercialOfferPanelProps) => {
 	return (
 		<Card>
 			<CardHeader className="pb-3">
-				<CardTitle className="flex items-center justify-between text-base">
-					<div className="flex items-center gap-2">
+				<CardTitle className="text-base">
+					<div className="flex flex-wrap items-center justify-between gap-2">
+					<div className="flex flex-wrap items-center gap-2">
 						<History className="h-4 w-4" />
 						Commercial Offer
 						{activeOffer && (
@@ -694,7 +698,7 @@ const CommercialOfferPanel = ({ rfqId }: CommercialOfferPanelProps) => {
 						)}
 						{!activeOffer && offers.length === 0 && <span className="text-muted-foreground text-sm font-normal">No versions yet</span>}
 					</div>
-					<div className="flex items-center gap-2">
+					<div className="flex flex-wrap items-center gap-2">
 						{activeOffer?.status === "DRAFT" && (
 							<Button disabled={isSubmitting} onClick={() => submitOffer(activeOffer._id)} size="sm" variant="outline">
 								<Send className="mr-2 h-3 w-3" />
@@ -723,6 +727,7 @@ const CommercialOfferPanel = ({ rfqId }: CommercialOfferPanelProps) => {
 								{showHistory ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
 							</Button>
 						)}
+					</div>
 					</div>
 				</CardTitle>
 			</CardHeader>
