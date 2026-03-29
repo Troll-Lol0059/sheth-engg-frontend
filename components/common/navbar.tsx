@@ -5,6 +5,7 @@ import { Menu } from "lucide-react";
 import SidebarSheet from "./sidebar-sheet";
 import NotificationBell from "./notification-bell";
 import EmailBadge from "./email-badge";
+import PendingRfqBadge from "./pending-rfq-badge";
 import { useRouter } from "next/navigation";
 import { Button } from "@components/ui/button";
 import { toast } from "@components/ui/toaster";
@@ -53,6 +54,9 @@ const Navbar = ({ menuItemsData }: NavbarProps) => {
 						</NavigationMenuItem>
 						<NavigationMenuItem>
 							<EmailBadge />
+						</NavigationMenuItem>
+						<NavigationMenuItem>
+							<PendingRfqBadge />
 						</NavigationMenuItem>
 						<NavigationMenuItem>
 							<NotificationBell />

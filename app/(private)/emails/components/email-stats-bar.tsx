@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import axios from "@config/axios";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@components/ui/button";
@@ -16,16 +15,16 @@ const statCards: { key: EmailCategory; label: string; color: string }[] = [
 	{ key: "MATERIAL_NOT_RECEIVED", label: "Material Missing", color: "border-red-500 bg-red-50 text-red-700" },
 ];
 
-type Period = "today" | "week" | "all";
+export type Period = "today" | "yesterday" | "week" | "all";
 
 interface EmailStatsBarProps {
 	activeCategory: EmailCategory | null;
 	onCategoryClick: (category: EmailCategory | null) => void;
+	period: Period;
+	onPeriodChange: (period: Period) => void;
 }
 
-const EmailStatsBar = ({ activeCategory, onCategoryClick }: EmailStatsBarProps) => {
-	const [period, setPeriod] = useState<Period>("week");
-
+const EmailStatsBar = ({ activeCategory, onCategoryClick, period, onPeriodChange }: EmailStatsBarProps) => {
 	const { data: stats } = useQuery<EmailStats>({
 		queryKey: ["email-stats", period],
 		queryFn: async () => {
@@ -40,9 +39,9 @@ const EmailStatsBar = ({ activeCategory, onCategoryClick }: EmailStatsBarProps) 
 	return (
 		<div className="space-y-3">
 			<div className="flex items-center gap-2">
-				{(["today", "week", "all"] as Period[]).map(p => (
-					<Button className="h-7 text-xs" key={p} onClick={() => setPeriod(p)} size="sm" variant={period === p ? "default" : "outline"}>
-						{p === "today" ? "Today" : p === "week" ? "This Week" : "All Time"}
+				{(["today", "yesterday", "week", "all"] as Period[]).map(p => (
+					<Button className="h-7 text-xs" key={p} onClick={() => onPeriodChange(p)} size="sm" variant={period === p ? "default" : "outline"}>
+						{p === "today" ? "Today" : p === "yesterday" ? "Yesterday" : p === "week" ? "This Week" : "All Time"}
 					</Button>
 				))}
 				{stats && <span className="text-muted-foreground ml-auto text-xs">{stats.total ?? 0} total emails</span>}
