@@ -33,7 +33,7 @@ const nextConfig: NextConfig = {
 		return [
 			{
 				source: "/",
-				destination: "/RFQ",
+				destination: "/emails",
 				permanent: false,
 			},
 		];

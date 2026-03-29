@@ -15,17 +15,11 @@ import { TablePaginationControls } from "@components/common/table-pagination-con
 import { emailColumns } from "./email-columns";
 import EmailActions from "./email-actions";
 import EmailDetailSheet from "./email-detail-sheet";
-import EmailStatsBar from "./email-stats-bar";
+import EmailStatsBar, { type Period } from "./email-stats-bar";
 import LinkRfqDialog from "./link-rfq-dialog";
 import CreateRfqFromEmailDialog from "./create-rfq-from-email-dialog";
 
-interface EmailTableProps {
-	initialData: EmailRecord[];
-	initialTotalPages: number;
-	initialTotalCount: number;
-}
-
-const EmailTable = ({ initialData, initialTotalPages, initialTotalCount }: EmailTableProps) => {
+const EmailTable = () => {
 	const queryClient = useQueryClient();
 
 	// State
@@ -36,8 +30,7 @@ const EmailTable = ({ initialData, initialTotalPages, initialTotalCount }: Email
 	const [sourceFilter, setSourceFilter] = useState<string>("all");
 	const [linkedFilter, setLinkedFilter] = useState<string>("all");
 	const [categoryFilter, setCategoryFilter] = useState<EmailCategory | null>(null);
-	const [pageCount, setPageCount] = useState(initialTotalPages);
-	const [totalCount, setTotalCount] = useState(initialTotalCount);
+	const [period, setPeriod] = useState<Period>("week");
 
 	// Dialogs
 	const [selectedEmail, setSelectedEmail] = useState<EmailRecord | null>(null);
@@ -45,35 +38,37 @@ const EmailTable = ({ initialData, initialTotalPages, initialTotalCount }: Email
 	const [linkRfqEmail, setLinkRfqEmail] = useState<string | null>(null);
 	const [createRfqEmail, setCreateRfqEmail] = useState<EmailRecord | null>(null);
 
-	// Fetch emails
-	const fetchEmails = async ({ queryKey }: { queryKey: readonly unknown[] }) => {
-		const [, srch, page, size, sortId, sortDesc, src, linked, category] = queryKey as [string, string, number, number, string, boolean, string, string, string | null];
-		const params = new URLSearchParams({
-			page: String(page + 1),
-			size: String(size),
-			sortBy: sortId || "date",
-			sortOrder: sortDesc ? "desc" : "asc",
-		});
-		if (srch) params.append("search", srch);
-		if (src && src !== "all") params.append("source", src);
-		if (linked && linked !== "all") params.append("linked", linked);
-		if (category) params.append("category", category);
-
-		const res = await axios.get(`/api/v1/email/all?${params}`);
-		const d = res?.data?.data;
-		if (d) {
-			setPageCount(d.totalPages);
-			setTotalCount(d.totalCount);
-		}
-		return d?.data ?? [];
-	};
-
+	// Fetch emails — all filtering done server-side
 	const sortCol = sorting[0];
-	const { data: emails, isFetching } = useQuery<EmailRecord[]>({
-		queryKey: ["emails", search, pagination.pageIndex, pagination.pageSize, sortCol?.id ?? "date", sortCol?.desc ?? true, sourceFilter, linkedFilter, categoryFilter],
-		queryFn: fetchEmails,
-		initialData: search === "" && pagination.pageIndex === 0 ? initialData : undefined,
+	const { data, isFetching } = useQuery<{ data: EmailRecord[]; totalPages: number; totalCount: number }>({
+		queryKey: ["emails", search, pagination.pageIndex, pagination.pageSize, sortCol?.id ?? "date", sortCol?.desc ?? true, sourceFilter, linkedFilter, categoryFilter, period],
+		queryFn: async ({ queryKey }) => {
+			const [, srch, page, size, sortId, sortDesc, src, linked, category, prd] = queryKey as [string, string, number, number, string, boolean, string, string, string | null, string];
+			const params = new URLSearchParams({
+				page: String(page + 1),
+				size: String(size),
+				sortBy: sortId || "date",
+				sortOrder: sortDesc ? "desc" : "asc",
+			});
+			if (srch) params.append("search", srch);
+			if (src && src !== "all") params.append("source", src);
+			if (linked && linked !== "all") params.append("linked", linked);
+			if (category) params.append("category", category);
+			if (prd && prd !== "all") params.append("period", prd);
+
+			const res = await axios.get(`/api/v1/email/all?${params}`);
+			const d = res?.data?.data;
+			return {
+				data: d?.data ?? [],
+				totalPages: d?.totalPages ?? 0,
+				totalCount: d?.totalCount ?? 0,
+			};
+		},
 	});
+
+	const emails = data?.data ?? [];
+	const pageCount = data?.totalPages ?? 0;
+	const totalCount = data?.totalCount ?? 0;
 
 	// Auto-sync: polls every 2 minutes
 	const { isFetching: syncing } = useQuery({
@@ -126,7 +121,7 @@ const EmailTable = ({ initialData, initialTotalPages, initialTotalCount }: Email
 	);
 
 	const table = useReactTable({
-		data: emails ?? [],
+		data: emails,
 		columns: columnsWithActions,
 		pageCount,
 		state: { pagination, sorting },
@@ -142,12 +137,24 @@ const EmailTable = ({ initialData, initialTotalPages, initialTotalCount }: Email
 		setPagination(p => ({ ...p, pageIndex: 0 }));
 	};
 
+	const handlePeriodChange = (p: Period) => {
+		setPeriod(p);
+		setCategoryFilter(null);
+		setPagination(prev => ({ ...prev, pageIndex: 0 }));
+	};
+
+	const handleCategoryClick = (cat: EmailCategory | null) => {
+		setCategoryFilter(cat);
+		setPagination(p => ({ ...p, pageIndex: 0 }));
+	};
+
 	const resetFilters = () => {
 		setSearchInput("");
 		setSearch("");
 		setSourceFilter("all");
 		setLinkedFilter("all");
 		setCategoryFilter(null);
+		setPeriod("week");
 		setPagination({ pageIndex: 0, pageSize: 20 });
 		setSorting([{ id: "date", desc: true }]);
 	};
@@ -155,7 +162,7 @@ const EmailTable = ({ initialData, initialTotalPages, initialTotalCount }: Email
 	return (
 		<div className="space-y-4">
 			{/* Stats */}
-			<EmailStatsBar activeCategory={categoryFilter} onCategoryClick={cat => { setCategoryFilter(cat); setPagination(p => ({ ...p, pageIndex: 0 })); }} />
+			<EmailStatsBar activeCategory={categoryFilter} onCategoryClick={handleCategoryClick} period={period} onPeriodChange={handlePeriodChange} />
 
 			{/* Toolbar */}
 			<div className="flex flex-wrap items-center gap-2">

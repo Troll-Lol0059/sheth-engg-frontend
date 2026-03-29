@@ -83,7 +83,7 @@ const LoginForm = () => {
 				accessToken: data?.data?.accessToken ?? null,
 			});
 
-			router.replace("/RFQ");
+			router.replace("/emails");
 		},
 		onError: (error: unknown) => {
 			const err = error as { response?: { data?: ErrorData; statusText?: string } };
