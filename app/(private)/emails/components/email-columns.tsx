@@ -31,7 +31,7 @@ export const emailColumns: ColumnDef<EmailRecord>[] = [
 		cell: ({ row }) => {
 			const email = row.original;
 			return (
-				<div className="flex max-w-[400px] items-center gap-2">
+				<div className="flex max-w-[400px] items-center gap-2" title={email.subject || "(no subject)"}>
 					{!email.isRead && <div className="bg-primary h-2 w-2 shrink-0 rounded-full" />}
 					<span className={`truncate text-sm ${!email.isRead ? "font-semibold" : ""}`}>{email.subject || "(no subject)"}</span>
 					<div className="flex shrink-0 items-center gap-1">

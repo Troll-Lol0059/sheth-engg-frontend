@@ -3,7 +3,7 @@
 import { Badge } from "@components/ui/badge";
 
 const categoryConfig: Record<EmailCategory, { label: string; variant: "default" | "secondary" | "destructive" | "outline"; className: string }> = {
-	NEW_RFQ: { label: "New RFQ", variant: "default", className: "bg-blue-600 hover:bg-blue-700" },
+	NEW_RFQ: { label: "New RFQ", variant: "default", className: "bg-emerald-600 hover:bg-emerald-700" },
 	RFQ_REMINDER: { label: "Reminder", variant: "secondary", className: "bg-orange-500 text-white hover:bg-orange-600" },
 	RFQ_REOPENED: { label: "Reopened", variant: "secondary", className: "bg-amber-600 text-white hover:bg-amber-700" },
 	REVISION_NEGOTIATION: { label: "Revision", variant: "secondary", className: "bg-yellow-500 text-white hover:bg-yellow-600" },
