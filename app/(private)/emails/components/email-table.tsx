@@ -172,7 +172,7 @@ const EmailTable = () => {
 						startContent={<Search className="text-muted-foreground h-4 w-4 shrink-0" />}
 						onChange={e => setSearchInput(e.target.value)}
 						onKeyDown={e => e.key === "Enter" && handleSearch()}
-						placeholder="Search emails..."
+						placeholder="Search by PR number, subject, sender..."
 						value={searchInput}
 					/>
 				</div>
