@@ -153,7 +153,7 @@ const PendingRfqSheet = ({ open, onOpenChange }: PendingRfqSheetProps) => {
 											</div>
 											<p className="text-muted-foreground mt-0.5 truncate text-sm">{rfq.companyName}</p>
 											<div className="text-muted-foreground mt-1 flex items-center gap-3 text-xs">
-												<span>Due: {format(new Date(rfq.dueDate), "dd MMM yyyy")}</span>
+												<span>Due: {format(new Date(rfq.dueDate), "dd/MM/yyyy")}</span>
 												<span>{rfq.itemCount} item{rfq.itemCount !== 1 ? "s" : ""}</span>
 												<Badge variant="outline" className="text-[10px]">
 													{rfq.status.replace("_", " ")}

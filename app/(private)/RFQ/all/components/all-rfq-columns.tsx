@@ -76,7 +76,7 @@ export const allRfqColumns: ColumnDef<Rfq>[] = [
 			if (!date) return "—";
 			const d = new Date(date);
 			const isOverdue = !row.original.isQuoted && !row.original.isRegret && d < new Date();
-			return <span className={isOverdue ? "text-destructive font-medium" : ""}>{format(d, "dd MMM yyyy, HH:mm")}</span>;
+			return <span className={isOverdue ? "text-destructive font-medium" : ""}>{format(d, "dd/MM/yyyy")}</span>;
 		},
 	},
 	{

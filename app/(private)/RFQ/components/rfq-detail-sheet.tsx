@@ -46,7 +46,7 @@ const RfqDetailSheet = ({ rfq, open, onClose }: RfqDetailSheetProps) => {
 					<InfoField label="Location" value={rfq.location} />
 					<InfoField label="Owner" value={rfq.ownerName} />
 					<InfoField label="Start Date" value={rfq.startDate ? format(new Date(rfq.startDate), "dd MMM yyyy, HH:mm") : "—"} />
-					<InfoField label="Due Date" value={rfq.dueDate ? format(new Date(rfq.dueDate), "dd MMM yyyy, HH:mm") : "—"} />
+					<InfoField label="Due Date" value={rfq.dueDate ? format(new Date(rfq.dueDate), "dd/MM/yyyy") : "—"} />
 					<div className="flex flex-col gap-1">
 						<span className="text-xs text-muted-foreground">Status</span>
 						<Badge className="w-fit" variant={statusVariantMap[rfq.status] ?? "default"}>

@@ -102,7 +102,7 @@ const EmailDetailSheet = ({ email, open, onClose, onCreateRfq, onLinkRfq }: Emai
 								{extracted.companyNames.length > 0 && <InfoField label="Companies" value={extracted.companyNames.join(", ")} />}
 								{extracted.location && <InfoField label="Location" value={extracted.location} />}
 								{extracted.contactPerson && <InfoField label="Contact" value={extracted.contactPerson} />}
-								{extracted.dueDate && <InfoField label="Due Date" value={format(new Date(extracted.dueDate), "dd MMM yyyy")} />}
+								{extracted.dueDate && <InfoField label="Due Date" value={format(new Date(extracted.dueDate), "dd/MM/yyyy")} />}
 							</div>
 						)}
 
