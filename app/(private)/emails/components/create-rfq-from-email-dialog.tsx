@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { format } from "date-fns";
 import axios from "@config/axios";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@components/ui/dialog";
@@ -193,7 +194,7 @@ const CreateRfqFromEmailDialog = ({ email, open, onClose }: CreateRfqFromEmailDi
 							{extracted.dueDate && (
 								<div>
 									<span className="text-muted-foreground text-xs">Due Date</span>
-									<p className="text-sm font-medium">{new Date(extracted.dueDate).toLocaleDateString()}</p>
+									<p className="text-sm font-medium">{format(new Date(extracted.dueDate), "dd/MM/yyyy")}</p>
 								</div>
 							)}
 						</div>

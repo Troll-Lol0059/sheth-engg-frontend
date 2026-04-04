@@ -42,7 +42,7 @@ export const rfqColumns: ColumnDef<Rfq>[] = [
 		header: "Due Date",
 		cell: ({ row }) => {
 			const date = row.getValue("dueDate") as string;
-			return date ? format(new Date(date), "dd MMM yyyy") : "—";
+			return date ? format(new Date(date), "dd/MM/yyyy") : "—";
 		},
 	},
 	{

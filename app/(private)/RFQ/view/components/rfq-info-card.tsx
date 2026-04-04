@@ -92,8 +92,8 @@ const RfqInfoCard = ({ rfq }: RfqInfoCardProps) => {
 						<InfoItem icon={<Building2 className="h-4 w-4 text-muted-foreground" />} label="Company" value={rfq.companyName} />
 						<InfoItem icon={<MapPin className="h-4 w-4 text-muted-foreground" />} label="Location" value={rfq.location} />
 						<InfoItem icon={<User className="h-4 w-4 text-muted-foreground" />} label="Owner" value={rfq.ownerName} />
-						<InfoItem icon={<CalendarDays className="h-4 w-4 text-muted-foreground" />} label="Start Date" value={rfq.startDate ? format(new Date(rfq.startDate), "dd MMM yyyy") : "—"} />
-						<InfoItem icon={<CalendarDays className="h-4 w-4 text-muted-foreground" />} label="Due Date" value={rfq.dueDate ? format(new Date(rfq.dueDate), "dd MMM yyyy") : "—"} />
+						<InfoItem icon={<CalendarDays className="h-4 w-4 text-muted-foreground" />} label="Start Date" value={rfq.startDate ? format(new Date(rfq.startDate), "dd MMM yyyy, HH:mm") : "—"} />
+						<InfoItem icon={<CalendarDays className="h-4 w-4 text-muted-foreground" />} label="Due Date" value={rfq.dueDate ? format(new Date(rfq.dueDate), "dd/MM/yyyy") : "—"} />
 						<div className="flex flex-col gap-1.5">
 							<span className="flex items-center gap-2 text-xs font-medium text-muted-foreground">Status</span>
 							<Badge className="w-fit" variant={statusVariantMap[rfq.status] ?? "default"}>

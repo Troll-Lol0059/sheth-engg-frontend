@@ -65,7 +65,7 @@ export const allRfqColumns: ColumnDef<Rfq>[] = [
 		header: "Start Date",
 		cell: ({ row }) => {
 			const date = row.getValue("startDate") as string;
-			return date ? format(new Date(date), "dd MMM yyyy") : "—";
+			return date ? format(new Date(date), "dd MMM yyyy, HH:mm") : "—";
 		},
 	},
 	{
@@ -76,7 +76,7 @@ export const allRfqColumns: ColumnDef<Rfq>[] = [
 			if (!date) return "—";
 			const d = new Date(date);
 			const isOverdue = !row.original.isQuoted && !row.original.isRegret && d < new Date();
-			return <span className={isOverdue ? "text-destructive font-medium" : ""}>{format(d, "dd MMM yyyy")}</span>;
+			return <span className={isOverdue ? "text-destructive font-medium" : ""}>{format(d, "dd/MM/yyyy")}</span>;
 		},
 	},
 	{
