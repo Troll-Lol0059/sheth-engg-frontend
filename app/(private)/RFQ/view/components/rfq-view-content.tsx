@@ -7,6 +7,7 @@ import { Separator } from "@components/ui/separator";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@components/ui/tabs";
 import { ArrowLeft, Package, Calculator, Wrench } from "lucide-react";
 import RfqInfoCard from "./rfq-info-card";
+import RfqDrawingsSection from "./rfq-drawings-section";
 import RfqItemsSection from "./rfq-items-section";
 import BulkDrawingUpload from "./bulk-drawing-upload";
 import CostingSummary from "./costing-summary";
@@ -59,6 +60,10 @@ const RfqViewContent = ({ rfq: initialRfq }: RfqViewContentProps) => {
 			<Separator />
 
 			<RfqInfoCard rfq={rfq} />
+
+			{rfq.drawings && rfq.drawings.length > 0 && (
+				<RfqDrawingsSection drawings={rfq.drawings} />
+			)}
 
 			{hasPopulatedItems ? (
 				<Tabs defaultValue="line-items" className="w-full">

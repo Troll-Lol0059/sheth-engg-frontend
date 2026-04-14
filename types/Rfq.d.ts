@@ -78,6 +78,11 @@ type RfqLineItem = {
 	isDeleted: boolean;
 };
 
+type RfqDrawing = {
+	url: string;
+	filename: string;
+};
+
 type Rfq = {
 	_id: string;
 	prNumber: string;
@@ -86,6 +91,7 @@ type Rfq = {
 	ownerName: string;
 	companyName: string;
 	location: string;
+	drawings?: RfqDrawing[];
 	isQuoted: boolean;
 	quotedOn?: string;
 	quotationNumber?: number;
