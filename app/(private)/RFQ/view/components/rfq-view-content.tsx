@@ -7,6 +7,7 @@ import { Separator } from "@components/ui/separator";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@components/ui/tabs";
 import { ArrowLeft, Package, Calculator, Wrench } from "lucide-react";
 import RfqInfoCard from "./rfq-info-card";
+import RfqDrawingsSection from "./rfq-drawings-section";
 import RfqItemsSection from "./rfq-items-section";
 import BulkDrawingUpload from "./bulk-drawing-upload";
 import CostingSummary from "./costing-summary";
@@ -34,6 +35,23 @@ const RfqViewContent = ({ rfq: initialRfq }: RfqViewContentProps) => {
 
 	const items = (rfq.items ?? []) as RfqLineItem[];
 	const hasPopulatedItems = items.length > 0 && typeof items[0] !== "string";
+	const itemDrawings: RfqDrawing[] = hasPopulatedItems
+		? (items as RfqLineItem[])
+				.filter(item => Boolean(item.drawingUrl))
+				.map(item => {
+					const url = item.drawingUrl;
+					const rawName = url.split("/").pop()?.split("?")[0] ?? "";
+					const fileName = decodeURIComponent(rawName) || `${item.item?.itemCode ?? "drawing"}.pdf`;
+					return { url, filename: fileName };
+				})
+		: [];
+	const rfqDrawings = (rfq.drawings ?? [])
+		.filter(drawing => Boolean(drawing?.url))
+		.map(drawing => ({
+			url: drawing.url,
+			filename: drawing.filename?.trim() || drawing.url.split("/").pop()?.split("?")[0] || "Drawing file",
+		}));
+	const drawingsToShow = rfqDrawings.length > 0 ? rfqDrawings : itemDrawings;
 
 	return (
 		<div className="flex flex-col gap-6 p-4 sm:p-6">
@@ -59,6 +77,8 @@ const RfqViewContent = ({ rfq: initialRfq }: RfqViewContentProps) => {
 			<Separator />
 
 			<RfqInfoCard rfq={rfq} />
+
+			<RfqDrawingsSection drawings={drawingsToShow} />
 
 			{hasPopulatedItems ? (
 				<Tabs defaultValue="line-items" className="w-full">
