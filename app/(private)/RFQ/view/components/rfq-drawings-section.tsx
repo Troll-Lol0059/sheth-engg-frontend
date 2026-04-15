@@ -31,8 +31,6 @@ function getFileBadgeLabel(filename: string) {
 }
 
 const RfqDrawingsSection = ({ drawings }: RfqDrawingsSectionProps) => {
-	if (!drawings || drawings.length === 0) return null;
-
 	return (
 		<Card>
 			<CardHeader>
@@ -40,36 +38,40 @@ const RfqDrawingsSection = ({ drawings }: RfqDrawingsSectionProps) => {
 					<Paperclip className="h-5 w-5" />
 					Available Drawings
 					<Badge className="ml-1" variant="secondary">
-						{drawings.length}
+						{drawings?.length ?? 0}
 					</Badge>
 				</CardTitle>
 			</CardHeader>
 			<CardContent>
-				<div className="space-y-2">
-					{drawings.map((drawing, idx) => (
-						<div
-							key={idx}
-							className="flex items-center justify-between rounded-md border bg-muted/30 px-4 py-2.5"
-						>
-							<div className="flex min-w-0 items-center gap-3">
-								{getFileIcon(drawing.filename)}
-								<span className="truncate text-sm font-medium">{drawing.filename}</span>
-								<Badge variant="outline" className="shrink-0 text-[10px]">
-									{getFileBadgeLabel(drawing.filename)}
-								</Badge>
-							</div>
-							<Button
-								onClick={() => window.open(drawing.url, "_blank", "noopener,noreferrer")}
-								size="sm"
-								variant="outline"
-								className="ml-4 shrink-0"
+				{!drawings || drawings.length === 0 ? (
+					<p className="text-sm text-muted-foreground">No drawings available for this RFQ yet.</p>
+				) : (
+					<div className="space-y-2">
+						{drawings.map((drawing, idx) => (
+							<div
+								key={idx}
+								className="flex items-center justify-between rounded-md border bg-muted/30 px-4 py-2.5"
 							>
-								<ExternalLink className="mr-2 h-3 w-3" />
-								Open
-							</Button>
-						</div>
-					))}
-				</div>
+								<div className="flex min-w-0 items-center gap-3">
+									{getFileIcon(drawing.filename)}
+									<span className="truncate text-sm font-medium">{drawing.filename}</span>
+									<Badge variant="outline" className="shrink-0 text-[10px]">
+										{getFileBadgeLabel(drawing.filename)}
+									</Badge>
+								</div>
+								<Button
+									onClick={() => window.open(drawing.url, "_blank", "noopener,noreferrer")}
+									size="sm"
+									variant="outline"
+									className="ml-4 shrink-0"
+								>
+									<ExternalLink className="mr-2 h-3 w-3" />
+									Open
+								</Button>
+							</div>
+						))}
+					</div>
+				)}
 			</CardContent>
 		</Card>
 	);

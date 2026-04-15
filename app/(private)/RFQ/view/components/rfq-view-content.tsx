@@ -35,6 +35,23 @@ const RfqViewContent = ({ rfq: initialRfq }: RfqViewContentProps) => {
 
 	const items = (rfq.items ?? []) as RfqLineItem[];
 	const hasPopulatedItems = items.length > 0 && typeof items[0] !== "string";
+	const itemDrawings: RfqDrawing[] = hasPopulatedItems
+		? (items as RfqLineItem[])
+				.filter(item => Boolean(item.drawingUrl))
+				.map(item => {
+					const url = item.drawingUrl;
+					const rawName = url.split("/").pop()?.split("?")[0] ?? "";
+					const fileName = decodeURIComponent(rawName) || `${item.item?.itemCode ?? "drawing"}.pdf`;
+					return { url, filename: fileName };
+				})
+		: [];
+	const rfqDrawings = (rfq.drawings ?? [])
+		.filter(drawing => Boolean(drawing?.url))
+		.map(drawing => ({
+			url: drawing.url,
+			filename: drawing.filename?.trim() || drawing.url.split("/").pop()?.split("?")[0] || "Drawing file",
+		}));
+	const drawingsToShow = rfqDrawings.length > 0 ? rfqDrawings : itemDrawings;
 
 	return (
 		<div className="flex flex-col gap-6 p-4 sm:p-6">
@@ -61,9 +78,7 @@ const RfqViewContent = ({ rfq: initialRfq }: RfqViewContentProps) => {
 
 			<RfqInfoCard rfq={rfq} />
 
-			{rfq.drawings && rfq.drawings.length > 0 && (
-				<RfqDrawingsSection drawings={rfq.drawings} />
-			)}
+			<RfqDrawingsSection drawings={drawingsToShow} />
 
 			{hasPopulatedItems ? (
 				<Tabs defaultValue="line-items" className="w-full">
