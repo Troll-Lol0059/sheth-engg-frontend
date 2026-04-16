@@ -35,7 +35,7 @@ type RfqTableProps = {
 };
 
 const RfqTable = ({ initialData, columns, totalPages, totalElements, isQuotedFilter, isRevisedFilter, isRegretFilter }: RfqTableProps) => {
-	const [sorting, setSorting] = useState<SortingState>([]);
+	const [sorting, setSorting] = useState<SortingState>([{ id: "createdAt", desc: true }]);
 	const [filter, setFilter] = useState<string>("");
 	const [globalFilter, setGlobalFilter] = useState<string>(filter);
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
