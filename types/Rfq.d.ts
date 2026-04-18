@@ -91,6 +91,7 @@ type Rfq = {
 	ownerName: string;
 	companyName: string;
 	location: string;
+	documentUrl?: string;
 	drawings?: RfqDrawing[];
 	isQuoted: boolean;
 	quotedOn?: string;
@@ -282,6 +283,18 @@ type ExtractionResponse = {
 		rawText: string;
 		fileUrl?: string;
 		originalFilename?: string;
+	};
+	message: string;
+	success: boolean;
+};
+
+type SingleItemExtractionResponse = {
+	statusCode: number;
+	data: {
+		layer: string;
+		confidence: number;
+		errors: string[];
+		item: ParsedItem | null;
 	};
 	message: string;
 	success: boolean;

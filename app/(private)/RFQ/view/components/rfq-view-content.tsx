@@ -13,6 +13,7 @@ import BulkDrawingUpload from "./bulk-drawing-upload";
 import CostingSummary from "./costing-summary";
 import TechnicalSummary from "./technical-summary";
 import MarkQuotedDialog from "./mark-quoted-dialog";
+import ReExtractDialog from "./re-extract-dialog";
 import ModuleHelp from "@components/common/module-help";
 import { rfqViewHelp } from "@data/helpData";
 
@@ -57,7 +58,7 @@ const RfqViewContent = ({ rfq: initialRfq }: RfqViewContentProps) => {
 		<div className="flex flex-col gap-6 p-4 sm:p-6">
 			<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 				<div className="flex min-w-0 items-center gap-3">
-					<Button className="h-9 w-9 shrink-0" onClick={() => router.push(rfq.isRegret ? "/RFQ/regret" : rfq.isRevised ? "/RFQ/revised" : rfq.isQuoted ? "/RFQ/quoted" : "/RFQ/pending")} size="icon" variant="ghost">
+					<Button className="h-9 w-9 shrink-0" onClick={() => router.back()} size="icon" variant="ghost">
 						<ArrowLeft className="h-5 w-5" />
 					</Button>
 					<div className="min-w-0">
@@ -70,6 +71,7 @@ const RfqViewContent = ({ rfq: initialRfq }: RfqViewContentProps) => {
 				</div>
 				<div className="flex shrink-0 items-center gap-2 self-end sm:self-center">
 					<ModuleHelp description="Complete guide to RFQ details, costing, and offers" sections={rfqViewHelp} title="RFQ Detail — Help" />
+					<ReExtractDialog rfq={rfq} />
 					<MarkQuotedDialog rfq={rfq} />
 				</div>
 			</div>
