@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import axios from "@config/axios";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -13,7 +13,7 @@ import { Badge } from "@components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@components/ui/select";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@components/ui/form";
 import { DatePicker } from "@components/ui/date-picker";
-import { Pencil, Save, X, CalendarDays, Building2, MapPin, User, Hash, Truck } from "lucide-react";
+import { Pencil, Save, X, CalendarDays, Building2, MapPin, User, Hash, Truck, ExternalLink, RefreshCw, ImageIcon } from "lucide-react";
 import { format } from "date-fns";
 
 interface RfqInfoCardProps {
@@ -35,9 +35,26 @@ const updateRfqApi = async (rfqId: string, data: Record<string, unknown>) => {
 	return response?.data;
 };
 
+type LinkedEmailData = {
+	_id: string;
+	subject: string;
+	aribaLinks: AribaLink[];
+} | null;
+
 const RfqInfoCard = ({ rfq }: RfqInfoCardProps) => {
 	const queryClient = useQueryClient();
 	const [isEditing, setIsEditing] = useState(false);
+
+	const { data: linkedEmail } = useQuery<LinkedEmailData>({
+		queryKey: ["rfq-linked-email", rfq._id],
+		queryFn: async () => {
+			const res = await axios.get(`/api/v1/rfq/${rfq._id}/linked-email`);
+			return res?.data?.data as LinkedEmailData;
+		},
+		retry: 0,
+	});
+
+	const aribaLinks = linkedEmail?.aribaLinks ?? [];
 
 	const defaultValues: RfqInfoFormValues = {
 		prNumber: rfq.prNumber,
@@ -64,6 +81,25 @@ const RfqInfoCard = ({ rfq }: RfqInfoCardProps) => {
 		},
 		onError: () => {
 			toast.error("Failed to update RFQ");
+		},
+	});
+
+	const { mutate: syncDrawingsMutate, isPending: isSyncingDrawings } = useMutation({
+		mutationFn: async () => {
+			const res = await axios.post(`/api/v1/rfq/${rfq._id}/sync-drawings`);
+			return res?.data;
+		},
+		onSuccess: data => {
+			const count = data?.data?.drawings?.length ?? 0;
+			if (count > 0) {
+				toast.success(`${count} drawing(s) synced from Ariba`);
+				queryClient.invalidateQueries({ queryKey: ["rfq", rfq._id] });
+			} else {
+				toast.warning("No drawings found on Ariba page");
+			}
+		},
+		onError: () => {
+			toast.error("Failed to sync drawings from Ariba");
 		},
 	});
 
@@ -102,6 +138,51 @@ const RfqInfoCard = ({ rfq }: RfqInfoCardProps) => {
 						</div>
 						<InfoItem icon={<Truck className="h-4 w-4 text-muted-foreground" />} label="Delivery Weeks" value={rfq.deliveryWeeks ? String(rfq.deliveryWeeks) : "—"} />
 						<InfoItem label="Quoted" value={rfq.isQuoted ? "Yes" : "No"} />
+						{aribaLinks.length > 0 && (
+							<div className="col-span-1 flex flex-col gap-1.5 sm:col-span-2 lg:col-span-3">
+								<span className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+									<ExternalLink className="h-4 w-4" />
+									Ariba Link{aribaLinks.length > 1 ? "s" : ""}
+								</span>
+								<div className="flex flex-wrap items-center gap-2">
+									{aribaLinks.map((link, idx) => (
+										<a key={link._id ?? idx} href={link.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 rounded-md border bg-muted/40 px-2.5 py-1 text-xs font-medium text-primary hover:bg-muted/70 hover:underline">
+											<ExternalLink className="h-3 w-3" />
+											Open Ariba{aribaLinks.length > 1 ? ` #${idx + 1}` : " RFQ"}
+											<Badge variant="outline" className="ml-1 px-1.5 py-0 text-[10px]">
+												{link.downloadStatus.replace(/_/g, " ")}
+											</Badge>
+										</a>
+									))}
+									<Button
+										disabled={isSyncingDrawings}
+										onClick={() => syncDrawingsMutate()}
+										size="sm"
+										variant="outline"
+										className="h-7 gap-1.5 text-xs"
+									>
+										<RefreshCw className={`h-3 w-3 ${isSyncingDrawings ? "animate-spin" : ""}`} />
+										{isSyncingDrawings ? "Syncing..." : "Sync Drawings"}
+									</Button>
+								</div>
+							</div>
+						)}
+						{rfq.drawings && rfq.drawings.length > 0 && (
+							<div className="col-span-1 flex flex-col gap-1.5 sm:col-span-2 lg:col-span-3">
+								<span className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+									<ImageIcon className="h-4 w-4" />
+									Drawings ({rfq.drawings.length})
+								</span>
+								<div className="flex flex-wrap gap-2">
+									{rfq.drawings.map((drawing, idx) => (
+										<a key={idx} href={drawing.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 rounded-md border bg-muted/40 px-2.5 py-1 text-xs font-medium text-primary hover:bg-muted/70 hover:underline">
+											<ExternalLink className="h-3 w-3" />
+											{drawing.filename}
+										</a>
+									))}
+								</div>
+							</div>
+						)}
 					</div>
 				</CardContent>
 			</Card>
