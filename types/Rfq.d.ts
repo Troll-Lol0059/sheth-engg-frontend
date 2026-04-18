@@ -253,6 +253,7 @@ type ParsedItem = {
 	itemDesc?: string;
 	itemType?: string;
 	quantity: number;
+	uom?: string;
 	drawingNumber?: string;
 	technical?: {
 		material?: string;
