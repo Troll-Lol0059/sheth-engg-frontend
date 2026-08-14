@@ -3,6 +3,7 @@ type SalesRecord = {
 	invoiceNumber: string;
 	invoiceDate: string;
 	dispatchDate: string;
+	financialYear: string;
 	poReference: string;
 	poNumber?: string;
 	companyName: string;
@@ -94,4 +95,78 @@ type PoFulfillmentSummary = {
 type PoFulfillmentResult = {
 	summary: PoFulfillmentSummary;
 	pos: PoFulfillmentEntry[];
+};
+
+type SalesInvoiceSummary = {
+	invoiceNumber: string;
+	dispatchDate: string;
+	financialYear: string;
+	poNumber?: string;
+	poReference: string;
+	companyName: string;
+	transporterName?: string;
+	status: string;
+	itemCount: number;
+	totalQuantity: number;
+	totalNetAmount: number;
+};
+
+type SalesInvoiceHeader = {
+	invoiceNumber: string;
+	dispatchDate: string;
+	financialYear: string;
+	poNumber?: string;
+	poReference: string;
+	companyName: string;
+	gstin?: string;
+	transporterName?: string;
+	transporterGstin?: string;
+	totalQuantity: number;
+	totalNetAmount: number;
+};
+
+type SalesInvoiceDetail = {
+	header: SalesInvoiceHeader;
+	items: SalesRecord[];
+};
+
+type PoDispatchListItem = {
+	poNumber: string;
+	jobNumber?: string;
+	companyName: string;
+	poDate?: string;
+	status: "FULLY_DISPATCHED" | "PARTIALLY_DISPATCHED" | "NOT_DISPATCHED" | "PO_NOT_FOUND";
+	orderedQty?: number;
+	dispatchedQty: number;
+	pendingQty?: number;
+	invoiceCount: number;
+	lastDispatchDate: string;
+};
+
+type PoDispatchEvent = {
+	invoiceNumber: string;
+	dispatchDate: string;
+	quantity: number;
+	uom?: string;
+	consignmentNumber?: string;
+	transporterName?: string;
+	ewayBillNumber?: string;
+};
+
+type PoDispatchDetailItem = {
+	itemCode: string;
+	itemDescription: string;
+	orderedQty?: number;
+	dispatchedQty: number;
+	pendingQty?: number;
+	dispatchEvents: PoDispatchEvent[];
+};
+
+type PoDispatchDetail = {
+	poNumber: string;
+	jobNumber?: string;
+	companyName: string;
+	poDate?: string;
+	poFoundInRegister: boolean;
+	items: PoDispatchDetailItem[];
 };

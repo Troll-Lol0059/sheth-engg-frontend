@@ -7,6 +7,7 @@ type EmailCategory =
 	| "PO_DISCUSSION"
 	| "DELIVERY_SCHEDULE"
 	| "MATERIAL_NOT_RECEIVED"
+	| "DISPATCH_STATUS_REQUEST"
 	| "DRAWING_DOCUMENT"
 	| "GENERAL";
 
@@ -68,6 +69,7 @@ type EmailRecord = {
 	attachments: EmailAttachment[];
 	aribaLinks: AribaLink[];
 	classification: EmailClassification;
+	dispatchRequests: { poNumber: string; itemCode?: string }[];
 	linkedRfq?: {
 		_id: string;
 		prNumber: string;

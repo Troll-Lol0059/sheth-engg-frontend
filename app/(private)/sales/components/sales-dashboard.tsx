@@ -1,10 +1,13 @@
 "use client";
+import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import axios from "@config/axios";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@components/ui/chart";
-import { AlertTriangle, Building2, CheckCircle2, Clock, IndianRupee, Package, Receipt } from "lucide-react";
+import { AlertTriangle, ArrowUpRight, Building2, CheckCircle2, Clock, IndianRupee, Package, Receipt } from "lucide-react";
+import { ALL_FINANCIAL_YEARS } from "@lib/financialYear";
+import FinancialYearSelect from "./financial-year-select";
 
 const formatCurrency = (value: number) => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", notation: "compact", maximumFractionDigits: 1 }).format(value);
 const formatCurrencyFull = (value: number) => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(value);
@@ -20,24 +23,29 @@ const rankChartConfig: ChartConfig = {
 };
 
 type SalesDashboardProps = {
+	financialYear: string;
+	onFinancialYearChange: (fy: string) => void;
+	financialYears: string[];
 	initialStats: SalesStats;
 	initialFulfillment: PoFulfillmentResult;
 };
 
-const SalesDashboard = ({ initialStats, initialFulfillment }: SalesDashboardProps) => {
+const SalesDashboard = ({ financialYear, onFinancialYearChange, financialYears, initialStats, initialFulfillment }: SalesDashboardProps) => {
 	const { data: stats } = useQuery<SalesStats>({
-		queryKey: ["sales-stats"],
+		queryKey: ["sales-stats", financialYear],
 		queryFn: async () => {
-			const response = await axios.get("/api/v1/sales/stats");
+			const params = financialYear && financialYear !== ALL_FINANCIAL_YEARS ? `?financialYear=${financialYear}` : "";
+			const response = await axios.get(`/api/v1/sales/stats${params}`);
 			return response?.data?.data as SalesStats;
 		},
 		initialData: initialStats,
 	});
 
 	const { data: fulfillment } = useQuery<PoFulfillmentResult>({
-		queryKey: ["sales-fulfillment"],
+		queryKey: ["sales-fulfillment", financialYear],
 		queryFn: async () => {
-			const response = await axios.get("/api/v1/sales/po-fulfillment?limit=20");
+			const fyParam = financialYear && financialYear !== ALL_FINANCIAL_YEARS ? `&financialYear=${financialYear}` : "";
+			const response = await axios.get(`/api/v1/sales/po-fulfillment?limit=20${fyParam}`);
 			return response?.data?.data as PoFulfillmentResult;
 		},
 		initialData: initialFulfillment,
@@ -59,6 +67,11 @@ const SalesDashboard = ({ initialStats, initialFulfillment }: SalesDashboardProp
 
 	return (
 		<div className="flex flex-col gap-6">
+			<div className="flex items-center justify-between">
+				<h2 className="text-lg font-semibold">Overview</h2>
+				<FinancialYearSelect value={financialYear} onValueChange={onFinancialYearChange} financialYears={financialYears} />
+			</div>
+
 			{/* KPI stat tiles */}
 			<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
 				<Card>
@@ -163,8 +176,12 @@ const SalesDashboard = ({ initialStats, initialFulfillment }: SalesDashboardProp
 
 			{/* PO fulfillment */}
 			<Card>
-				<CardHeader>
+				<CardHeader className="flex flex-row items-center justify-between">
 					<CardTitle className="text-base">PO Fulfillment</CardTitle>
+					<Link href={financialYear && financialYear !== ALL_FINANCIAL_YEARS ? `/sales/by-po?financialYear=${financialYear}` : "/sales/by-po"} className="text-primary flex items-center gap-1 text-sm hover:underline">
+						View by PO
+						<ArrowUpRight size={14} />
+					</Link>
 				</CardHeader>
 				<CardContent className="flex flex-col gap-4">
 					<div className="grid grid-cols-1 gap-3 sm:grid-cols-3">

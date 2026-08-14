@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { ColumnDef, ColumnFiltersState, flexRender, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, PaginationState, SortingState, useReactTable, VisibilityState } from "@tanstack/react-table";
 import { useDebounce } from "react-use";
@@ -11,9 +12,12 @@ import { Button } from "@components/ui/button";
 import { Badge } from "@components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@components/ui/table";
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuTrigger } from "@components/ui/dropdown-menu";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@components/ui/dialog";
 import { TablePaginationControls } from "@components/common/table-pagination-controls";
-import { ArrowRightLeft, FileSpreadsheet, ListRestart, Loader2, Search, Upload } from "lucide-react";
+import { ArrowRightLeft, Eye, FileSpreadsheet, ListRestart, Loader2, Search, Upload } from "lucide-react";
+import { ALL_FINANCIAL_YEARS } from "@lib/financialYear";
+import BulkTransportImportDialog from "./bulk-transport-import-dialog";
 
 const formatCurrency = (value: number) => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(value);
 
@@ -32,7 +36,7 @@ type ImportResult = {
 	unmatchedPoNumbers: string[];
 };
 
-const columns: ColumnDef<SalesRecord>[] = [
+const columns: ColumnDef<SalesInvoiceSummary>[] = [
 	{
 		accessorKey: "invoiceNumber",
 		header: "Invoice No.",
@@ -65,36 +69,22 @@ const columns: ColumnDef<SalesRecord>[] = [
 		),
 	},
 	{
-		accessorKey: "itemCode",
-		header: "Item Code",
-	},
-	{
-		accessorKey: "itemName",
-		header: "Item Name",
-		cell: ({ row }) => (
-			<span className="block max-w-[200px] truncate" title={row.getValue("itemName") as string}>
-				{row.getValue("itemName")}
-			</span>
-		),
-	},
-	{
-		accessorKey: "quantity",
-		header: "Qty",
-		cell: ({ row }) => (
-			<span>
-				{row.getValue("quantity")} {row.original.uom}
-			</span>
-		),
-	},
-	{
-		accessorKey: "netAmount",
-		header: "Net Amount",
-		cell: ({ row }) => <span className="font-medium">{formatCurrency(row.getValue("netAmount") as number)}</span>,
-	},
-	{
 		accessorKey: "transporterName",
 		header: "Transporter",
 		cell: ({ row }) => row.original.transporterName || "—",
+	},
+	{
+		accessorKey: "itemCount",
+		header: "Items",
+	},
+	{
+		accessorKey: "totalQuantity",
+		header: "Total Qty",
+	},
+	{
+		accessorKey: "totalNetAmount",
+		header: "Net Amount",
+		cell: ({ row }) => <span className="font-medium">{formatCurrency(row.getValue("totalNetAmount") as number)}</span>,
 	},
 	{
 		id: "status",
@@ -105,12 +95,15 @@ const columns: ColumnDef<SalesRecord>[] = [
 ];
 
 type SalesTableProps = {
-	initialData: SalesRecord[];
+	financialYear: string;
+	onFinancialYearChange: (fy: string) => void;
+	financialYears: string[];
+	initialData: SalesInvoiceSummary[];
 	initialTotalPages: number;
 	initialTotalCount: number;
 };
 
-const SalesTable = ({ initialData, initialTotalPages, initialTotalCount }: SalesTableProps) => {
+const SalesTable = ({ financialYear, onFinancialYearChange, financialYears, initialData, initialTotalPages, initialTotalCount }: SalesTableProps) => {
 	const queryClient = useQueryClient();
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -127,21 +120,22 @@ const SalesTable = ({ initialData, initialTotalPages, initialTotalCount }: Sales
 
 	useDebounce(() => setGlobalFilter(filter), 500, [filter]);
 
-	const fetchSales = async ({ queryKey }: { queryKey: QueryKey }) => {
-		const [, search, page, size, sortId, sortDesc] = queryKey as [string, string | undefined, number, number, string | undefined, string | undefined];
+	const fetchInvoices = async ({ queryKey }: { queryKey: QueryKey }) => {
+		const [, fy, search, page, size, sortId, sortDesc] = queryKey as [string, string, string | undefined, number, number, string | undefined, string | undefined];
 		try {
 			const params = new URLSearchParams();
 			params.append("page", String((page ?? 0) + 1));
 			params.append("size", size?.toString() || "10");
 			if (search) params.append("search", search);
+			if (fy && fy !== ALL_FINANCIAL_YEARS) params.append("financialYear", fy);
 			if (sortId) params.append("sortBy", sortId);
 			if (sortDesc !== undefined) params.append("sortOrder", sortDesc === "true" ? "desc" : "asc");
 
-			const response = await axios.get(`/api/v1/sales?${params.toString()}`);
+			const response = await axios.get(`/api/v1/sales/invoices?${params.toString()}`);
 			const result = response?.data?.data;
 			setPageCount(result?.totalPages ?? 0);
 			setTotalElementsCount(result?.total ?? 0);
-			return (result?.data ?? []) as SalesRecord[];
+			return (result?.data ?? []) as SalesInvoiceSummary[];
 		} catch (error: unknown) {
 			const errorData = (error as AxiosError)?.response?.data as ErrorData;
 			console.error(errorData?.message);
@@ -149,9 +143,9 @@ const SalesTable = ({ initialData, initialTotalPages, initialTotalCount }: Sales
 		}
 	};
 
-	const { data, isFetching } = useQuery<SalesRecord[]>({
-		queryKey: ["sales", globalFilter, pagination.pageIndex, pagination.pageSize, sorting[0]?.id, sorting[0]?.desc ? "true" : "false"],
-		queryFn: fetchSales,
+	const { data, isFetching } = useQuery<SalesInvoiceSummary[]>({
+		queryKey: ["sales-invoices", financialYear, globalFilter, pagination.pageIndex, pagination.pageSize, sorting[0]?.id, sorting[0]?.desc ? "true" : "false"],
+		queryFn: fetchInvoices,
 		initialData: initialData,
 	});
 
@@ -169,9 +163,10 @@ const SalesTable = ({ initialData, initialTotalPages, initialTotalCount }: Sales
 			if (result.rowErrors?.length || result.rowWarnings?.length || result.unmatchedPoNumbers?.length) {
 				setImportResult(result);
 			}
-			queryClient.invalidateQueries({ queryKey: ["sales"] });
+			queryClient.invalidateQueries({ queryKey: ["sales-invoices"] });
 			queryClient.invalidateQueries({ queryKey: ["sales-stats"] });
 			queryClient.invalidateQueries({ queryKey: ["sales-fulfillment"] });
+			queryClient.invalidateQueries({ queryKey: ["sales-financial-years"] });
 		},
 		onError: (error: AxiosError<ErrorData>) => {
 			toast.error(error.response?.data?.message ?? "Failed to import sales CSV");
@@ -231,15 +226,29 @@ const SalesTable = ({ initialData, initialTotalPages, initialTotalCount }: Sales
 
 	return (
 		<>
-			{/* Search, Import, Reset, Columns */}
+			{/* FY filter, Search, Import, Reset, Columns */}
 			<div className="flex w-full flex-col items-center justify-end gap-1 py-3 sm:flex-row">
-				<Input className="h-10 max-w-sm" onChange={e => setFilter(e.target.value)} placeholder="Search invoice, PO, company, item code..." startContent={<Search size={16} />} value={filter} />
+				<Select value={financialYear} onValueChange={onFinancialYearChange}>
+					<SelectTrigger className="h-10 w-full sm:w-[140px]">
+						<SelectValue placeholder="Financial Year" />
+					</SelectTrigger>
+					<SelectContent>
+						<SelectItem value={ALL_FINANCIAL_YEARS}>All Years</SelectItem>
+						{financialYears.map(fy => (
+							<SelectItem key={fy} value={fy}>
+								FY {fy}
+							</SelectItem>
+						))}
+					</SelectContent>
+				</Select>
+				<Input className="h-10 max-w-sm" onChange={e => setFilter(e.target.value)} placeholder="Search invoice, PO, company..." startContent={<Search size={16} />} value={filter} />
 				<div className="mt-2 flex w-full flex-col items-center gap-2 sm:mt-0 sm:w-auto sm:flex-row">
 					<input type="file" ref={fileInputRef} accept=".csv,.xlsx,.xls" onChange={handleFileChange} className="hidden" />
 					<Button className="w-full text-xs lg:w-auto" onClick={() => fileInputRef.current?.click()} disabled={importMutation.isPending} variant="outline">
 						{importMutation.isPending ? <Loader2 className="animate-spin" size={16} /> : <Upload size={16} />}
 						Import Sales Data
 					</Button>
+					<BulkTransportImportDialog />
 					<Button className="w-full text-xs lg:w-auto" onClick={resetTableState} variant="outline">
 						<ListRestart size={16} />
 						Reset
@@ -274,13 +283,14 @@ const SalesTable = ({ initialData, initialTotalPages, initialTotalCount }: Sales
 								{headerGroup.headers.map(header => (
 									<TableHead key={header.id}>{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}</TableHead>
 								))}
+								<TableHead>Actions</TableHead>
 							</TableRow>
 						))}
 					</TableHeader>
 					<TableBody>
 						{isFetching ? (
 							<TableRow>
-								<TableCell className="h-32 text-center" colSpan={columns.length}>
+								<TableCell className="h-32 text-center" colSpan={columns.length + 1}>
 									<div className="flex items-center justify-center">
 										<Loader2 className="text-primary animate-spin" size={32} />
 									</div>
@@ -292,11 +302,19 @@ const SalesTable = ({ initialData, initialTotalPages, initialTotalCount }: Sales
 									{row.getVisibleCells().map(cell => (
 										<TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
 									))}
+									<TableCell>
+										<Button size="sm" variant="ghost" asChild>
+											<Link href={`/sales/invoices/${row.original.invoiceNumber}`}>
+												<Eye size={16} />
+												View
+											</Link>
+										</Button>
+									</TableCell>
 								</TableRow>
 							))
 						) : (
 							<TableRow>
-								<TableCell className="h-24 text-center" colSpan={columns.length}>
+								<TableCell className="h-24 text-center" colSpan={columns.length + 1}>
 									<div className="flex flex-col items-center gap-2">
 										<FileSpreadsheet className="text-muted-foreground h-10 w-10" />
 										<p className="text-muted-foreground">No sales records found</p>
@@ -309,7 +327,9 @@ const SalesTable = ({ initialData, initialTotalPages, initialTotalCount }: Sales
 			</div>
 
 			{/* Pagination */}
-			<TablePaginationControls footerHeading="rows" table={table} totalElementsCount={totalElementsCount} />
+			<TablePaginationControls footerHeading="invoices" table={table} totalElementsCount={totalElementsCount} />
+
+			{/* Invoice detail sheet */}
 
 			{/* Import result dialog — surfaces skipped rows / warnings / unmatched POs instead of collapsing into one toast */}
 			<Dialog open={!!importResult} onOpenChange={open => !open && setImportResult(null)}>
