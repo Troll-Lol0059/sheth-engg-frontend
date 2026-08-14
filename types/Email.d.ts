@@ -70,6 +70,10 @@ type EmailRecord = {
 	aribaLinks: AribaLink[];
 	classification: EmailClassification;
 	dispatchRequests: { poNumber: string; itemCode?: string }[];
+	dispatchDraftStatus: "NONE" | "DRAFT_CREATED" | "SENT";
+	dispatchDraftMessageId?: string;
+	dispatchDraftCreatedAt?: string;
+	dispatchDraftSentAt?: string;
 	linkedRfq?: {
 		_id: string;
 		prNumber: string;
@@ -101,6 +105,7 @@ type EmailSettings = {
 	hasImapPassword: boolean;
 	hasAribaPassword: boolean;
 	senderWhitelist: string[];
+	autoGmailDraftEnabled: boolean;
 };
 
 type EmailCreateRfqPrefill = {
