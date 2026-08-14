@@ -35,6 +35,7 @@ import {
 	UserCog,
 	Wrench,
 	XCircle,
+	TrendingUp,
 } from "lucide-react";
 
 type MenuIconProps = {
@@ -113,6 +114,8 @@ const MenuIcon = ({ icon }: MenuIconProps) => {
 			return <Inbox />;
 		case "Mail":
 			return <Mail />;
+		case "TrendingUp":
+			return <TrendingUp />;
 		default:
 			return <CircleDot />;
 	}

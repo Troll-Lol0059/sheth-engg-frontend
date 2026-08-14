@@ -11,6 +11,7 @@ const categoryConfig: Record<EmailCategory, { label: string; variant: "default" 
 	PO_DISCUSSION: { label: "PO Discussion", variant: "outline", className: "border-green-500 text-green-700" },
 	DELIVERY_SCHEDULE: { label: "Delivery", variant: "secondary", className: "bg-purple-600 text-white hover:bg-purple-700" },
 	MATERIAL_NOT_RECEIVED: { label: "Material Missing", variant: "destructive", className: "" },
+	DISPATCH_STATUS_REQUEST: { label: "Dispatch Status", variant: "secondary", className: "bg-blue-600 text-white hover:bg-blue-700" },
 	DRAWING_DOCUMENT: { label: "Drawing/Doc", variant: "outline", className: "border-sky-500 text-sky-700" },
 	GENERAL: { label: "General", variant: "outline", className: "" },
 };

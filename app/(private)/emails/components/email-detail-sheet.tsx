@@ -12,6 +12,7 @@ import { Separator } from "@components/ui/separator";
 import { ScrollArea } from "@components/ui/scroll-area";
 import { Download, ExternalLink, FileText, Globe, Paperclip, AlertCircle, CheckCircle, Loader2 } from "lucide-react";
 import EmailCategoryBadge from "./email-category-badge";
+import DispatchDraftPanel from "./dispatch-draft-panel";
 
 interface EmailDetailSheetProps {
 	email: EmailRecord | null;
@@ -233,6 +234,14 @@ const EmailDetailSheet = ({ email, open, onClose, onCreateRfq, onLinkRfq }: Emai
 								Link to RFQ
 							</Button>
 						</div>
+
+						{/* Dispatch status draft reply */}
+						{email.classification.category === "DISPATCH_STATUS_REQUEST" && (
+							<>
+								<Separator />
+								<DispatchDraftPanel emailId={email._id} />
+							</>
+						)}
 					</div>
 				</ScrollArea>
 			</SheetContent>

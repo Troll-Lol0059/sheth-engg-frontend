@@ -13,6 +13,7 @@ const statCards: { key: EmailCategory; label: string; color: string }[] = [
 	{ key: "PO_RELATED", label: "PO", color: "border-green-500 bg-green-50 text-green-700" },
 	{ key: "DELIVERY_SCHEDULE", label: "Delivery", color: "border-purple-500 bg-purple-50 text-purple-700" },
 	{ key: "MATERIAL_NOT_RECEIVED", label: "Material Missing", color: "border-red-500 bg-red-50 text-red-700" },
+	{ key: "DISPATCH_STATUS_REQUEST", label: "Dispatch Status", color: "border-blue-500 bg-blue-50 text-blue-700" },
 ];
 
 export type Period = "today" | "yesterday" | "week" | "all";
@@ -46,7 +47,7 @@ const EmailStatsBar = ({ activeCategory, onCategoryClick, period, onPeriodChange
 				))}
 				{stats && <span className="text-muted-foreground ml-auto text-xs">{stats.total ?? 0} total emails</span>}
 			</div>
-			<div className="grid grid-cols-3 gap-2 sm:grid-cols-7">
+			<div className="grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-8">
 				{statCards.map(card => {
 					const count = stats?.[card.key] ?? 0;
 					const isActive = activeCategory === card.key;
