@@ -239,6 +239,16 @@ const EmailDetailSheet = ({ email, open, onClose, onCreateRfq, onLinkRfq }: Emai
 						{email.classification.category === "DISPATCH_STATUS_REQUEST" && (
 							<>
 								<Separator />
+								{email.dispatchDraftStatus === "DRAFT_CREATED" && (
+									<Badge className="w-fit bg-blue-600 text-white hover:bg-blue-700">
+										Gmail draft created{email.dispatchDraftCreatedAt ? ` — ${format(new Date(email.dispatchDraftCreatedAt), "dd MMM, HH:mm")}` : ""}
+									</Badge>
+								)}
+								{email.dispatchDraftStatus === "SENT" && (
+									<Badge className="w-fit bg-green-600 text-white hover:bg-green-700">
+										Reply sent via Gmail{email.dispatchDraftSentAt ? ` — ${format(new Date(email.dispatchDraftSentAt), "dd MMM, HH:mm")}` : ""}
+									</Badge>
+								)}
 								<DispatchDraftPanel emailId={email._id} />
 							</>
 						)}

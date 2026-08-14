@@ -39,6 +39,7 @@ const EmailSettingsDialog = ({ open, onClose }: EmailSettingsDialogProps) => {
 		aribaUsername: "",
 		aribaPassword: "",
 		aribaAutoDownload: false,
+		autoGmailDraftEnabled: false,
 	});
 
 	useEffect(() => {
@@ -53,6 +54,7 @@ const EmailSettingsDialog = ({ open, onClose }: EmailSettingsDialogProps) => {
 				syncIntervalMinutes: settings.syncIntervalMinutes,
 				aribaUsername: settings.aribaUsername,
 				aribaAutoDownload: settings.aribaAutoDownload,
+				autoGmailDraftEnabled: settings.autoGmailDraftEnabled,
 			}));
 		}
 	}, [settings]);
@@ -194,6 +196,22 @@ const EmailSettingsDialog = ({ open, onClose }: EmailSettingsDialogProps) => {
 					{form.aribaAutoDownload && (
 						<p className="text-muted-foreground text-xs">Requires Puppeteer installed on server. Uses ~300-400MB RAM. Falls back to link-only on failure.</p>
 					)}
+
+					<Separator />
+
+					{/* Dispatch status auto-draft */}
+					<div>
+						<h4 className="text-sm font-semibold">Dispatch Status Auto-Draft</h4>
+						<p className="text-muted-foreground mb-3 text-xs">
+							When enabled, a Gmail draft is created automatically (never sent) for dispatch-status emails, but only for POs/items that
+							have actually been dispatched. When disabled, nothing is checked and no drafts are created.
+						</p>
+					</div>
+
+					<label className="flex items-center gap-2 text-sm">
+						<input checked={form.autoGmailDraftEnabled} onChange={e => update("autoGmailDraftEnabled", e.target.checked)} type="checkbox" />
+						Auto-create Gmail drafts for dispatch status emails
+					</label>
 
 					<Separator />
 
