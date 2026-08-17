@@ -36,6 +36,8 @@ const EmailSettingsPage = () => {
 		aribaPassword: "",
 		aribaAutoDownload: false,
 		senderWhitelist: [] as string[],
+		autoGmailDraftEnabled: false,
+		autoCreateRfqEnabled: false,
 	});
 
 	const [newWhitelist, setNewWhitelist] = useState("");
@@ -53,6 +55,8 @@ const EmailSettingsPage = () => {
 				aribaUsername: settings.aribaUsername,
 				aribaAutoDownload: settings.aribaAutoDownload,
 				senderWhitelist: settings.senderWhitelist || [],
+				autoGmailDraftEnabled: settings.autoGmailDraftEnabled,
+				autoCreateRfqEnabled: settings.autoCreateRfqEnabled,
 			}));
 		}
 	}, [settings]);
@@ -244,6 +248,40 @@ const EmailSettingsPage = () => {
 						Enable auto-download (Puppeteer mode)
 					</label>
 					{form.aribaAutoDownload && <p className="text-muted-foreground text-xs">Requires Puppeteer installed on server. Uses ~300-400MB RAM. Falls back to link-only on failure.</p>}
+				</CardContent>
+			</Card>
+
+			{/* Dispatch Status Auto-Draft */}
+			<Card>
+				<CardHeader>
+					<CardTitle className="text-base">Dispatch Status Auto-Draft</CardTitle>
+					<CardDescription>
+						When enabled, a Gmail draft is created automatically (never sent) for dispatch-status emails, but only for POs/items that have
+						actually been dispatched. When disabled, nothing is checked and no drafts are created.
+					</CardDescription>
+				</CardHeader>
+				<CardContent>
+					<label className="flex items-center gap-2 text-sm">
+						<input checked={form.autoGmailDraftEnabled} onChange={e => update("autoGmailDraftEnabled", e.target.checked)} type="checkbox" />
+						Auto-create Gmail drafts for dispatch status emails
+					</label>
+				</CardContent>
+			</Card>
+
+			{/* RFQ Auto-Creation */}
+			<Card>
+				<CardHeader>
+					<CardTitle className="text-base">RFQ Auto-Creation</CardTitle>
+					<CardDescription>
+						When enabled, downloaded Ariba documents are automatically extracted and turned into PREVIEW-status RFQs. Off by default —
+						create RFQs manually from the RFQ module instead.
+					</CardDescription>
+				</CardHeader>
+				<CardContent>
+					<label className="flex items-center gap-2 text-sm">
+						<input checked={form.autoCreateRfqEnabled} onChange={e => update("autoCreateRfqEnabled", e.target.checked)} type="checkbox" />
+						Auto-create RFQs from downloaded Ariba documents
+					</label>
 				</CardContent>
 			</Card>
 
