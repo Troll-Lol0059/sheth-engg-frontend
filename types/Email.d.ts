@@ -106,6 +106,7 @@ type EmailSettings = {
 	hasAribaPassword: boolean;
 	senderWhitelist: string[];
 	autoGmailDraftEnabled: boolean;
+	autoCreateRfqEnabled: boolean;
 };
 
 type EmailCreateRfqPrefill = {

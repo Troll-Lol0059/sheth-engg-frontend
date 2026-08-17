@@ -40,6 +40,7 @@ const EmailSettingsDialog = ({ open, onClose }: EmailSettingsDialogProps) => {
 		aribaPassword: "",
 		aribaAutoDownload: false,
 		autoGmailDraftEnabled: false,
+		autoCreateRfqEnabled: false,
 	});
 
 	useEffect(() => {
@@ -55,6 +56,7 @@ const EmailSettingsDialog = ({ open, onClose }: EmailSettingsDialogProps) => {
 				aribaUsername: settings.aribaUsername,
 				aribaAutoDownload: settings.aribaAutoDownload,
 				autoGmailDraftEnabled: settings.autoGmailDraftEnabled,
+				autoCreateRfqEnabled: settings.autoCreateRfqEnabled,
 			}));
 		}
 	}, [settings]);
@@ -196,6 +198,22 @@ const EmailSettingsDialog = ({ open, onClose }: EmailSettingsDialogProps) => {
 					{form.aribaAutoDownload && (
 						<p className="text-muted-foreground text-xs">Requires Puppeteer installed on server. Uses ~300-400MB RAM. Falls back to link-only on failure.</p>
 					)}
+
+					<Separator />
+
+					{/* RFQ auto-creation */}
+					<div>
+						<h4 className="text-sm font-semibold">RFQ Auto-Creation</h4>
+						<p className="text-muted-foreground mb-3 text-xs">
+							When enabled, downloaded Ariba documents are automatically extracted and turned into PREVIEW-status RFQs. Off by default —
+							create RFQs manually from the RFQ module instead.
+						</p>
+					</div>
+
+					<label className="flex items-center gap-2 text-sm">
+						<input checked={form.autoCreateRfqEnabled} onChange={e => update("autoCreateRfqEnabled", e.target.checked)} type="checkbox" />
+						Auto-create RFQs from downloaded Ariba documents
+					</label>
 
 					<Separator />
 
