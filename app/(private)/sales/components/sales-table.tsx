@@ -15,7 +15,7 @@ import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMe
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@components/ui/dialog";
 import { TablePaginationControls } from "@components/common/table-pagination-controls";
-import { ArrowRightLeft, Eye, FileSpreadsheet, ListRestart, Loader2, Search, Upload } from "lucide-react";
+import { ArrowRightLeft, Eye, FileSpreadsheet, ListRestart, Loader2, ScanBarcode, Search, Upload } from "lucide-react";
 import { ALL_FINANCIAL_YEARS } from "@lib/financialYear";
 import BulkTransportImportDialog from "./bulk-transport-import-dialog";
 
@@ -249,6 +249,12 @@ const SalesTable = ({ financialYear, onFinancialYearChange, financialYears, init
 						Import Sales Data
 					</Button>
 					<BulkTransportImportDialog />
+					<Button className="w-full text-xs lg:w-auto" variant="outline" asChild>
+						<Link href="/sales/barcodes">
+							<ScanBarcode size={16} />
+							Manage Barcodes
+						</Link>
+					</Button>
 					<Button className="w-full text-xs lg:w-auto" onClick={resetTableState} variant="outline">
 						<ListRestart size={16} />
 						Reset

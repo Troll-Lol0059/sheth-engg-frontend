@@ -171,3 +171,21 @@ type PoDispatchDetail = {
 	poFoundInRegister: boolean;
 	items: PoDispatchDetailItem[];
 };
+
+type BarcodeStatusRow = {
+	invoiceNumber: string;
+	companyName: string;
+	dispatchDate: string;
+	invoiceDate: string;
+	barcode?: string;
+};
+
+type BarcodeImportResult = {
+	totalRows: number;
+	matched: number;
+	updated: number;
+	notFound: number;
+	notFoundInvoiceNumbers: string[];
+	skipped: number;
+	rowErrors: string[];
+};
