@@ -38,6 +38,7 @@ const EmailSettingsPage = () => {
 		senderWhitelist: [] as string[],
 		autoGmailDraftEnabled: false,
 		autoCreateRfqEnabled: false,
+		autoPaymentFollowUpEnabled: false,
 	});
 
 	const [newWhitelist, setNewWhitelist] = useState("");
@@ -57,6 +58,7 @@ const EmailSettingsPage = () => {
 				senderWhitelist: settings.senderWhitelist || [],
 				autoGmailDraftEnabled: settings.autoGmailDraftEnabled,
 				autoCreateRfqEnabled: settings.autoCreateRfqEnabled,
+				autoPaymentFollowUpEnabled: settings.autoPaymentFollowUpEnabled,
 			}));
 		}
 	}, [settings]);
@@ -281,6 +283,22 @@ const EmailSettingsPage = () => {
 					<label className="flex items-center gap-2 text-sm">
 						<input checked={form.autoCreateRfqEnabled} onChange={e => update("autoCreateRfqEnabled", e.target.checked)} type="checkbox" />
 						Auto-create RFQs from downloaded Ariba documents
+					</label>
+				</CardContent>
+			</Card>
+
+			{/* Payment Follow-Up Auto-Draft */}
+			<Card>
+				<CardHeader>
+					<CardTitle className="text-base">Payment Follow-Up Auto-Draft</CardTitle>
+					<CardDescription>
+						When enabled, Gmail drafts (never sent) are created automatically for short-payment queries and invoices unpaid past 45 days, using JSW&apos;s standard vendor-query format. Off by default.
+					</CardDescription>
+				</CardHeader>
+				<CardContent>
+					<label className="flex items-center gap-2 text-sm">
+						<input checked={form.autoPaymentFollowUpEnabled} onChange={e => update("autoPaymentFollowUpEnabled", e.target.checked)} type="checkbox" />
+						Auto-create Gmail drafts for payment follow-ups
 					</label>
 				</CardContent>
 			</Card>

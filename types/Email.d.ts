@@ -107,6 +107,7 @@ type EmailSettings = {
 	senderWhitelist: string[];
 	autoGmailDraftEnabled: boolean;
 	autoCreateRfqEnabled: boolean;
+	autoPaymentFollowUpEnabled: boolean;
 };
 
 type EmailCreateRfqPrefill = {
