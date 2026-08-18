@@ -24,6 +24,7 @@ import {
 	RefreshCw,
 	Route,
 	Ruler,
+	Receipt,
 	ScrollText,
 	Shapes,
 	Shield,
@@ -116,6 +117,8 @@ const MenuIcon = ({ icon }: MenuIconProps) => {
 			return <Mail />;
 		case "TrendingUp":
 			return <TrendingUp />;
+		case "Receipt":
+			return <Receipt />;
 		default:
 			return <CircleDot />;
 	}

@@ -81,6 +81,7 @@ const InvoiceDetailPage = async ({ params }: InvoiceDetailPageProps) => {
 							<TableHead>Net Amount</TableHead>
 							<TableHead>Consignment No.</TableHead>
 							<TableHead>E-way Bill No.</TableHead>
+							<TableHead>Barcode</TableHead>
 							<TableHead>Transporter</TableHead>
 							<TableHead>Actions</TableHead>
 						</TableRow>
@@ -107,6 +108,7 @@ const InvoiceDetailPage = async ({ params }: InvoiceDetailPageProps) => {
 								<TableCell className="font-medium">{formatCurrency(item.netAmount)}</TableCell>
 								<TableCell>{item.consignmentNumber || "—"}</TableCell>
 								<TableCell>{item.ewayBillNumber || "—"}</TableCell>
+								<TableCell>{item.barcode || "—"}</TableCell>
 								<TableCell>{item.transporterName || "—"}</TableCell>
 								<TableCell>
 									<EditTransportDetailsDialog sale={item} />

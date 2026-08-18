@@ -16,6 +16,7 @@ type TransportDetailsForm = {
 	transporterGstin: string;
 	consignmentNumber: string;
 	ewayBillNumber: string;
+	barcode: string;
 };
 
 type EditTransportDetailsDialogProps = {
@@ -30,6 +31,7 @@ const EditTransportDetailsDialog = ({ sale }: EditTransportDetailsDialogProps) =
 		transporterGstin: sale.transporterGstin ?? "",
 		consignmentNumber: sale.consignmentNumber ?? "",
 		ewayBillNumber: sale.ewayBillNumber ?? "",
+		barcode: sale.barcode ?? "",
 	});
 
 	const mutation = useMutation({
@@ -79,6 +81,10 @@ const EditTransportDetailsDialog = ({ sale }: EditTransportDetailsDialogProps) =
 					<div className="flex flex-col gap-1.5">
 						<Label htmlFor="ewayBillNumber">E-way Bill Number</Label>
 						<Input id="ewayBillNumber" value={form.ewayBillNumber} onChange={handleChange("ewayBillNumber")} />
+					</div>
+					<div className="flex flex-col gap-1.5">
+						<Label htmlFor="barcode">Barcode (VSC)</Label>
+						<Input id="barcode" value={form.barcode} onChange={handleChange("barcode")} placeholder="17-digit VSC barcode" />
 					</div>
 				</div>
 				<DialogFooter>

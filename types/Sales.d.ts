@@ -9,6 +9,7 @@ type SalesRecord = {
 	companyName: string;
 	gstin?: string;
 	consignmentNumber?: string;
+	barcode?: string;
 	transporterId?: number;
 	transporterName?: string;
 	transporterGstin?: string;
