@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@components/ui/badge";
 import { notFound } from "next/navigation";
 import EditTransportDetailsDialog from "./components/edit-transport-details-dialog";
+import EditInvoiceTransportDetailsDialog from "./components/edit-invoice-transport-details-dialog";
 
 const formatCurrency = (value: number) => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 2 }).format(value);
 
@@ -31,12 +32,22 @@ const InvoiceDetailPage = async ({ params }: InvoiceDetailPageProps) => {
 
 	return (
 		<div className="flex flex-col gap-6 p-6">
-			<div>
-				<Link href="/sales" className="text-muted-foreground mb-2 flex items-center gap-1 text-sm hover:underline">
-					<ArrowLeft size={14} />
-					Back to Sales
-				</Link>
-				<h1 className="text-2xl font-bold">Invoice {header.invoiceNumber}</h1>
+			<div className="flex items-start justify-between">
+				<div>
+					<Link href="/sales" className="text-muted-foreground mb-2 flex items-center gap-1 text-sm hover:underline">
+						<ArrowLeft size={14} />
+						Back to Sales
+					</Link>
+					<h1 className="text-2xl font-bold">Invoice {header.invoiceNumber}</h1>
+				</div>
+				<EditInvoiceTransportDetailsDialog
+					invoiceNumber={header.invoiceNumber}
+					defaultValues={{
+						transporterName: header.transporterName ?? "",
+						transporterGstin: header.transporterGstin ?? "",
+						consignmentNumber: items[0]?.consignmentNumber ?? "",
+					}}
+				/>
 			</div>
 
 			<div className="grid grid-cols-2 gap-3 rounded-md border p-4 text-sm sm:grid-cols-3">
@@ -135,7 +146,7 @@ const fetchInvoiceDetail = async (invoiceNumber: string): Promise<SalesInvoiceDe
 	const headers = { cookie: `accessToken=${token}; refreshToken=${refreshToken}` };
 
 	try {
-		const response = await axios.get(`/api/v1/sales/invoices/${invoiceNumber}`, { headers });
+		const response = await axios.get(`/api/v1/sales/invoices/${encodeURIComponent(invoiceNumber)}`, { headers });
 		return (response?.data?.data ?? null) as SalesInvoiceDetail | null;
 	} catch {
 		return null;
