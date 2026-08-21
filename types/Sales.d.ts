@@ -99,6 +99,7 @@ type PoFulfillmentResult = {
 };
 
 type SalesInvoiceSummary = {
+	id: string;
 	invoiceNumber: string;
 	dispatchDate: string;
 	financialYear: string;
