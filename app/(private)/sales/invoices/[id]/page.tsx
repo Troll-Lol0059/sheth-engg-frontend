@@ -17,12 +17,12 @@ const formatDate = (date?: string) => {
 };
 
 type InvoiceDetailPageProps = {
-	params: Promise<{ invoiceNumber: string }>;
+	params: Promise<{ id: string }>;
 };
 
 const InvoiceDetailPage = async ({ params }: InvoiceDetailPageProps) => {
-	const { invoiceNumber } = await params;
-	const detail = await fetchInvoiceDetail(invoiceNumber);
+	const { id } = await params;
+	const detail = await fetchInvoiceDetail(id);
 
 	if (!detail) {
 		notFound();
@@ -41,6 +41,7 @@ const InvoiceDetailPage = async ({ params }: InvoiceDetailPageProps) => {
 					<h1 className="text-2xl font-bold">Invoice {header.invoiceNumber}</h1>
 				</div>
 				<EditInvoiceTransportDetailsDialog
+					id={id}
 					invoiceNumber={header.invoiceNumber}
 					defaultValues={{
 						transporterName: header.transporterName ?? "",
@@ -140,13 +141,13 @@ const InvoiceDetailPage = async ({ params }: InvoiceDetailPageProps) => {
 
 export default InvoiceDetailPage;
 
-const fetchInvoiceDetail = async (invoiceNumber: string): Promise<SalesInvoiceDetail | null> => {
+const fetchInvoiceDetail = async (id: string): Promise<SalesInvoiceDetail | null> => {
 	const token = await getToken();
 	const refreshToken = await getRefreshToken();
 	const headers = { cookie: `accessToken=${token}; refreshToken=${refreshToken}` };
 
 	try {
-		const response = await axios.get(`/api/v1/sales/invoices/${encodeURIComponent(invoiceNumber)}`, { headers });
+		const response = await axios.get(`/api/v1/sales/invoices/${id}`, { headers });
 		return (response?.data?.data ?? null) as SalesInvoiceDetail | null;
 	} catch {
 		return null;

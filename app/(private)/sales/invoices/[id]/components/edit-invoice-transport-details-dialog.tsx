@@ -18,6 +18,7 @@ type InvoiceTransportDetailsForm = {
 };
 
 type EditInvoiceTransportDetailsDialogProps = {
+	id: string;
 	invoiceNumber: string;
 	defaultValues: InvoiceTransportDetailsForm;
 };
@@ -30,14 +31,14 @@ type EditInvoiceTransportDetailsDialogProps = {
  * deliberately not exposed here: it comes in with the invoice import
  * itself, not backfilled by hand.
  */
-const EditInvoiceTransportDetailsDialog = ({ invoiceNumber, defaultValues }: EditInvoiceTransportDetailsDialogProps) => {
+const EditInvoiceTransportDetailsDialog = ({ id, invoiceNumber, defaultValues }: EditInvoiceTransportDetailsDialogProps) => {
 	const router = useRouter();
 	const [open, setOpen] = useState(false);
 	const [form, setForm] = useState<InvoiceTransportDetailsForm>(defaultValues);
 
 	const mutation = useMutation({
 		mutationFn: async (payload: InvoiceTransportDetailsForm) => {
-			const response = await axios.patch(`/api/v1/sales/invoices/${encodeURIComponent(invoiceNumber)}/transport-details`, payload);
+			const response = await axios.patch(`/api/v1/sales/invoices/${id}/transport-details`, payload);
 			return response?.data?.data;
 		},
 		onSuccess: () => {

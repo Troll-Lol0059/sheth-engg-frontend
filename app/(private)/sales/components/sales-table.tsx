@@ -310,7 +310,7 @@ const SalesTable = ({ financialYear, onFinancialYearChange, financialYears, init
 									))}
 									<TableCell>
 										<Button size="sm" variant="ghost" asChild>
-											<Link href={`/sales/invoices/${encodeURIComponent(row.original.invoiceNumber)}`}>
+											<Link href={`/sales/invoices/${row.original.id}`}>
 												<Eye size={16} />
 												View
 											</Link>
