@@ -84,9 +84,9 @@ const BulkTransportImportDialog = () => {
 				</DialogHeader>
 				<div className="flex flex-col gap-4 text-sm">
 					<p className="text-muted-foreground">
-						Download the template, fill in the Transporter Name, Transporter GSTIN, Consignment Number and E-way Bill No. columns for the
-						rows you have data for, then upload it back. Rows are matched by Invoice Number alone — one row updates every line item on
-						that invoice; a blank cell leaves the existing value untouched.
+						Download the template, fill in the Transporter Name, Transporter GSTIN and Consignment Number columns for the rows you have
+						data for, then upload it back. Rows are matched by Invoice Number alone — one row updates every line item on that invoice;
+						a blank cell leaves the existing value untouched.
 					</p>
 					<div className="flex flex-col gap-2 sm:flex-row">
 						<Button onClick={handleDownloadTemplate} disabled={isDownloading} variant="outline" className="w-full sm:w-auto">
